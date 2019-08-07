@@ -1,0 +1,4 @@
+######### sqrl_fk33 chnage log ##############
+
+1.0
+Initial board file release.
