@@ -1,3 +1,4 @@
+#Assuming I2C controller base address is 0x4080_0000 and FK33 LED's connected to its GPO port.
 
 #To set FK33 VCCINT to 0.85V write to I2C address 0x2C, to register 0x00, value 0x44.
 proc fk33_set_vccint {} {
