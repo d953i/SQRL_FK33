@@ -114,13 +114,13 @@ create_clock -period 5.000 -name hbm_refclk [get_ports hbm_refclk_clk_p]
 #set_property PACKAGE_PIN BC25 [get_ports LED_RGB_R]
 #set_property PACKAGE_PIN BB26 [get_ports LED_RGB_G]
 #set_property PACKAGE_PIN BB25 [get_ports LED_RGB_B]
-set_property -dict {PACKAGE_PIN BD25 IOSTANDARD LVCMOS18} [get_ports led[0]]
-set_property -dict {PACKAGE_PIN BE26 IOSTANDARD LVCMOS18} [get_ports led[1]]
-set_property -dict {PACKAGE_PIN BD23 IOSTANDARD LVCMOS18} [get_ports led[2]]
-set_property -dict {PACKAGE_PIN BF26 IOSTANDARD LVCMOS18} [get_ports led[3]]
-set_property -dict {PACKAGE_PIN BC25 IOSTANDARD LVCMOS18} [get_ports led[4]]
-set_property -dict {PACKAGE_PIN BB26 IOSTANDARD LVCMOS18} [get_ports led[5]]
-set_property -dict {PACKAGE_PIN BB25 IOSTANDARD LVCMOS18} [get_ports led[6]]
+set_property -dict {PACKAGE_PIN BD25 IOSTANDARD LVCMOS18} [get_ports {led[0]}]
+set_property -dict {PACKAGE_PIN BE26 IOSTANDARD LVCMOS18} [get_ports {led[1]}]
+set_property -dict {PACKAGE_PIN BD23 IOSTANDARD LVCMOS18} [get_ports {led[2]}]
+set_property -dict {PACKAGE_PIN BF26 IOSTANDARD LVCMOS18} [get_ports {led[3]}]
+set_property -dict {PACKAGE_PIN BC25 IOSTANDARD LVCMOS18} [get_ports {led[4]}]
+set_property -dict {PACKAGE_PIN BB26 IOSTANDARD LVCMOS18} [get_ports {led[5]}]
+set_property -dict {PACKAGE_PIN BB25 IOSTANDARD LVCMOS18} [get_ports {led[6]}]
 
 ############# I2C-local (to PMIC) ##################
 set_property -dict {PACKAGE_PIN BB24 IOSTANDARD LVCMOS18} [get_ports iic_scl_io]
@@ -142,18 +142,11 @@ set_property CONFIG_MODE SPIx4 [current_design]
 set_property BITSTREAM.CONFIG.SPI_FALL_EDGE YES [current_design]
 set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
 
-#set_property HD.RECONFIGURABLE true [get_cells bd_i/ocl_block]
-#set_property DONT_TOUCH true [get_cells bd_i/ocl_block]
 
-create_pblock xdma_hbm_pblock
-resize_pblock [get_pblocks xdma_hbm_pblock] -add {SLICE_X221Y0:SLICE_X232Y239 SLICE_X0Y0:SLICE_X220Y30}
-resize_pblock [get_pblocks xdma_hbm_pblock] -add {DSP48E2_X31Y0:DSP48E2_X31Y89 DSP48E2_X0Y0:DSP48E2_X30Y5}
-resize_pblock [get_pblocks xdma_hbm_pblock] -add {LAGUNA_X30Y0:LAGUNA_X31Y119}
-resize_pblock [get_pblocks xdma_hbm_pblock] -add {RAMB18_X13Y0:RAMB18_X13Y95 RAMB18_X0Y0:RAMB18_X12Y11}
-resize_pblock [get_pblocks xdma_hbm_pblock] -add {RAMB36_X13Y0:RAMB36_X13Y47 RAMB36_X0Y0:RAMB36_X12Y5}
-resize_pblock [get_pblocks xdma_hbm_pblock] -add {URAM288_X0Y0:URAM288_X4Y7}
-set_property MARK_DEBUG false [get_nets bd_i/xdma/inst/pcie4c_ip_i/inst/store_ltssm]
-set_property C_CLK_INPUT_FREQ_HZ 300000000 [get_debug_cores dbg_hub]
-set_property C_ENABLE_CLK_DIVIDER false [get_debug_cores dbg_hub]
-set_property C_USER_SCAN_CHAIN 1 [get_debug_cores dbg_hub]
-connect_debug_port dbg_hub/clk [get_nets clk]
+#set_property MARK_DEBUG false [get_nets bd_i/xdma/inst/pcie4c_ip_i/inst/store_ltssm]
+#set_property C_CLK_INPUT_FREQ_HZ 300000000 [get_debug_cores dbg_hub]
+#set_property C_ENABLE_CLK_DIVIDER false [get_debug_cores dbg_hub]
+#set_property C_USER_SCAN_CHAIN 1 [get_debug_cores dbg_hub]
+#connect_debug_port dbg_hub/clk [get_nets clk]
+#set_false_path -through [get_pins {bd_i/hbm/inst/*_STACK.u_hbm_top/AXI_*_ARESET_N}]
+
