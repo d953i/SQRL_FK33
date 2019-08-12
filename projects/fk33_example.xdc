@@ -85,24 +85,21 @@ set_property IOSTANDARD LVCMOS18 [get_ports {pcie_clkreq[0]}]
 ########### End PCIe ##################################
 
 ########### System Clock ##############################
-set_property PACKAGE_PIN BC26 [get_ports {hbm_refclk_clk_p[0]}]
-set_property PACKAGE_PIN BC27 [get_ports {hbm_refclk_clk_n[0]}]
-create_clock -period 5.000 -name hbm_refclk [get_ports hbm_refclk_clk_p]
-
-#set_property IOSTANDARD LVDS [get_ports {hbm_refclk_clk_n[0]}]
-#set_property IOSTANDARD LVDS [get_ports {hbm_refclk_clk_p[0]}]
-
+#set_property PACKAGE_PIN BC26 [get_ports {hbm_ref_clk_p[0]}]
+#set_property PACKAGE_PIN BC27 [get_ports {hbm_ref_clk_n[0]}]
+#set_property IOSTANDARD LVDS [get_ports {hbm_ref_clk_n[0]}]
+#set_property IOSTANDARD LVDS [get_ports {hbm_ref_clk_p[0]}]
 #set_property DIFF_TERM_ADV TERM_100 [get_ports {hbm_ref_clk_p[0]}]
 #set_property DIFF_TERM_ADV TERM_100 [get_ports {hbm_ref_clk_n[0]}]
 
 # DQS_BIAS only supported by DIFF_SSTL18
-#set_property DQS_BIAS TRUE [get_ports hbm_refclk_clk_p]
-#set_property DQS_BIAS TRUE [get_ports hbm_refclk_clk_n]
-#set_property EQUALIZATION EQ_LEVEL0 [get_ports hbm_refclk_clk_p]
-#set_property EQUALIZATION EQ_LEVEL0 [get_ports hbm_refclk_clk_n]
+#set_property DQS_BIAS TRUE [get_ports hbm_ref_clk_p]
+#set_property DQS_BIAS TRUE [get_ports hbm_ref_clk_n]
+#set_property EQUALIZATION EQ_LEVEL0 [get_ports hbm_ref_clk_p]
+#set_property EQUALIZATION EQ_LEVEL0 [get_ports hbm_ref_clk_n]
 
 # Not needed for this design, since the block diagram instantiates the clock
-
+#create_clock -period 5.000 -name hbm_clk [get_ports hbm_ref_clk_p]
 ########### End System Clock ##########################
 
 ############ LEDs ##################################
@@ -149,4 +146,18 @@ set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
 #set_property C_USER_SCAN_CHAIN 1 [get_debug_cores dbg_hub]
 #connect_debug_port dbg_hub/clk [get_nets clk]
 #set_false_path -through [get_pins {bd_i/hbm/inst/*_STACK.u_hbm_top/AXI_*_ARESET_N}]
+
+
+create_pblock pblock_bd_i
+add_cells_to_pblock [get_pblocks pblock_bd_i] [get_cells -quiet [list bd_i]]
+resize_pblock [get_pblocks pblock_bd_i] -add {SLICE_X0Y0:SLICE_X232Y38}
+resize_pblock [get_pblocks pblock_bd_i] -add {DSP48E2_X0Y0:DSP48E2_X31Y7}
+resize_pblock [get_pblocks pblock_bd_i] -add {RAMB18_X0Y0:RAMB18_X13Y13}
+resize_pblock [get_pblocks pblock_bd_i] -add {RAMB36_X0Y0:RAMB36_X13Y6}
+resize_pblock [get_pblocks pblock_bd_i] -add {URAM288_X0Y0:URAM288_X4Y7}
+set_property C_CLK_INPUT_FREQ_HZ 300000000 [get_debug_cores dbg_hub]
+set_property C_ENABLE_CLK_DIVIDER false [get_debug_cores dbg_hub]
+set_property C_USER_SCAN_CHAIN 1 [get_debug_cores dbg_hub]
+connect_debug_port dbg_hub/clk [get_nets clk]
+
 
