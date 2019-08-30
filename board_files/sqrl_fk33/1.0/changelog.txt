@@ -8,6 +8,7 @@
 	- Added a more fleshed out and informative description in board.xml
 	- Replaced reference image (used for preview in the Vivado GUI) to an image of the final product in board.xml
 	- Bumped revision in board.xml
+	- Changed part from speedgrade -2 to -2L in part0_pins.xml (see above)
 
 1.0
 Initial board file release.
