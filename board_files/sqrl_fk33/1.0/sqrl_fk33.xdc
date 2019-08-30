@@ -4,8 +4,8 @@ set_property CONFIG_MODE SPIx4 [current_design]
 set_property BITSTREAM.CONFIG.SPI_FALL_EDGE YES [current_design]
 set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
 
-set_property -dict { IOSTANDARD LVDS PACKAGE_PIN AY23 } 	[get_ports { SYSCLK0_300_N }];
-set_property -dict { IOSTANDARD LVDS PACKAGE_PIN BC26 } 	[get_ports { SYSCLK0_300_P }];
+set_property -dict { IOSTANDARD LVDS PACKAGE_PIN AY23 } 	[get_ports { SYSCLK0_200_N }];
+set_property -dict { IOSTANDARD LVDS PACKAGE_PIN BC26 } 	[get_ports { SYSCLK0_200_P }];
 
 set_property -dict { IOSTANDARD LVCMOS18 PACKAGE_PIN BB24 DRIVE 8  SLEW SLOW  } 	[get_ports { MAIN_I2C_SCL }];
 set_property -dict { IOSTANDARD LVCMOS18 PACKAGE_PIN BA24 DRIVE 8  SLEW SLOW  } 	[get_ports { MAIN_I2C_SDA }];
