@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<part_info part_name="xcvu33p-fsvh2104-2-e">
+<part_info part_name="xcvu33p-fsvh2104-2L-e">
   <pins>
     <pin index="0"   name ="IIC_SCL_MAIN" iostandard="LVCMOS18" loc="BB24" drive="8" slew="SLOW"/>
     <pin index="1"   name ="IIC_SDA_MAIN" iostandard="LVCMOS18" loc="BA24" drive="8" slew="SLOW"/>
