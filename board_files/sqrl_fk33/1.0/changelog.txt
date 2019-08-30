@@ -1,4 +1,13 @@
 ######### sqrl_fk33 chnage log ##############
 
+1.1
+	- Updated broken links in board.xml
+	- Changed instances of "FK33" to the final product name "Forest Kitten (Active Cooling)" in board.xml
+	- Updated URL in several places in board.xml
+	- Changed part from speedgrade -2 to -2L (chip is actually -2ES1; ES chips are not voltage binned, but it should be capable of -2L as per GPUHoarder) in board.xml
+	- Added a more fleshed out and informative description in board.xml
+	- Replaced reference image (used for preview in the Vivado GUI) to an image of the final product in board.xml
+	- Bumped revision in board.xml
+
 1.0
 Initial board file release.
