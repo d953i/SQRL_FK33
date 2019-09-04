@@ -67,3 +67,76 @@ proc axi256_read {addr} {
     set d3 [get_property DATA [get_hw_axi_txn r3]]
     return 0x[concat $d3$d2$d1$d0]
 }
+
+proc conv_temp_sysmon {value} {
+    return [expr ($value * 507.6 / 65536.0) - 279.43]
+}
+
+proc conv_volt_sysmon {value} {
+    return [expr ($value * 3.0 / 65536.0)]
+}
+
+proc conv_temp_ltc3636 {value} {
+    return [expr ($value * 400.0 / 65536.0) - 273.15]
+}
+
+#Inspired by @Briegel
+proc fk33_read_sysmon {} {
+
+    run_hw_axi -quiet [create_hw_axi_txn -quiet -force r [get_hw_axis hw_axi_1] -address 3400 -type read]
+    set vu33p_temp [conv_temp_sysmon [lindex [report_hw_axi_txn -t d4 [get_hw_axi_txns r]] 1]]
+    puts [format "Temp.:  %0.2fC" $vu33p_temp]
+
+    run_hw_axi -quiet [create_hw_axi_txn -quiet -force r [get_hw_axis hw_axi_1] -address 3440 -type read]
+    set inp12v [lindex [report_hw_axi_txn -t d4 [get_hw_axi_txns r]] 1]]
+    puts [format "INP12V:  %0.2fV" [expr  $vcc12v * 15.2 / 65536.0]]
+    
+    run_hw_axi -quiet [create_hw_axi_txn -quiet -force r [get_hw_axis hw_axi_1] -address 3404 -type read]
+    set vccint [conv_volt_sysmon [lindex [report_hw_axi_txn -t d4 [get_hw_axi_txns r]] 1]]
+    puts [format "VCCINT:  %0.2fV" $vccint]
+    
+    run_hw_axi -quiet [create_hw_axi_txn -quiet -force r [get_hw_axis hw_axi_1] -address 360c -type read]
+    set vcchbm [conv_volt_sysmon [lindex [report_hw_axi_txn -t d4 [get_hw_axi_txns r]] 1]]
+    puts [format "VCCHBM:  %0.2fV" $vcchbm]
+    
+    run_hw_axi -quiet [create_hw_axi_txn -quiet -force r [get_hw_axis hw_axi_1] -address 3408 -type read]
+    set vccaux [conv_volt_sysmon [lindex [report_hw_axi_txn -t d4 [get_hw_axi_txns r]] 1]]
+    puts [format "VCCAUX:  %0.2fV" $vccaux]
+    
+    run_hw_axi -quiet [create_hw_axi_txn -quiet -force r [get_hw_axis hw_axi_1] -address 3418 -type read]
+    set vccbram [conv_volt_sysmon [lindex [report_hw_axi_txn -t d4 [get_hw_axi_txns r]] 1]]
+    puts [format "VCCBRAM: %0.2fV" $vccbram]
+
+    run_hw_axi -quiet [create_hw_axi_txn -quiet -force r [get_hw_axis hw_axi_1] -address 3600 -type read]
+    set mgtavcc [conv_volt_sysmon [lindex [report_hw_axi_txn -t d4 [get_hw_axi_txns r]] 1]]
+    puts [format "MGTAVCC: %0.2fV" $mgtavcc]
+
+    run_hw_axi -quiet [create_hw_axi_txn -quiet -force r [get_hw_axis hw_axi_1] -address 3604 -type read]
+    set mgtaaux [conv_volt_sysmon [lindex [report_hw_axi_txn -t d4 [get_hw_axi_txns r]] 1]]
+    puts [format "MGTAAUX: %0.2fV" $mgtaaux]
+    
+    run_hw_axi -quiet [create_hw_axi_txn -quiet -force r [get_hw_axis hw_axi_1] -address 3608 -type read]
+    set mgtavtt [conv_volt_sysmon [lindex [report_hw_axi_txn -t d4 [get_hw_axi_txns r]] 1]]
+    puts [format "MGTAVTT: %0.2fV" $mgtavtt]
+    
+    run_hw_axi -quiet [create_hw_axi_txn -quiet -force r [get_hw_axis hw_axi_1] -address 3460 -type read]
+    set mgt_temp [conv_temp_ltc3636 [lindex [report_hw_axi_txn -t d4 [get_hw_axi_txns r]] 1]]
+    puts [format "LTC3636 VCCMGT Temp: %0.2fC" $mgt_temp]
+    
+    run_hw_axi -quiet [create_hw_axi_txn -quiet -force r [get_hw_axis hw_axi_1] -address 3450 -type read]
+    set aux_temp [conv_temp_ltc3636 [lindex [report_hw_axi_txn -t d4 [get_hw_axi_txns r]] 1]]
+    puts [format "LTC3636 VCCAUX Temp: %0.2fC" $aux_temp]
+    
+    run_hw_axi -quiet [create_hw_axi_txn -quiet -force r [get_hw_axis hw_axi_1] -address 3454 -type read]
+    set vccint_current [lindex [report_hw_axi_txn -t d4 [get_hw_axi_txns r]] 1]
+    
+    run_hw_axi -quiet [create_hw_axi_txn -quiet -force r [get_hw_axis hw_axi_1] -address 3470 -type read]
+    set vcchbm_current [lindex [report_hw_axi_txn -t d4 [get_hw_axi_txns r]] 1]
+    
+    run_hw_axi -quiet [create_hw_axi_txn -quiet -force r [get_hw_axis hw_axi_1] -address 3474 -type read]
+    set vccbram_current [lindex [report_hw_axi_txn -t d4 [get_hw_axi_txns r]] 1]
+
+    puts [format "VCCINT  %0.2f A (%0.2f W)" $vccint_current  [expr $vccint_current *  (12.0 / $vccint)]]
+    puts [format "VCCHBM  %0.2f A (%0.2f W)" $vcchbm_current  [expr $vcchbm_current *  (12.0 / $vcchbm)]]
+    puts [format "VCCBARM %0.2f A (%0.2f W)" $vccbram_current [expr $vccbram_current * (12.0 / $vccbram)]]
+}
