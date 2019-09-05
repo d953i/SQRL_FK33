@@ -101,17 +101,20 @@ set_property IOSTANDARD LVCMOS18 [get_ports {pcie_clkreq[0]}]
 ########### End System Clock ##########################
 
 ############ LEDs ##################################
-set_property -dict {PACKAGE_PIN BD25 IOSTANDARD LVCMOS18} [get_ports {led[0]}] #GREEN LED_A
-set_property -dict {PACKAGE_PIN BE26 IOSTANDARD LVCMOS18} [get_ports {led[1]}] #GREEN LED_A
-set_property -dict {PACKAGE_PIN BD23 IOSTANDARD LVCMOS18} [get_ports {led[2]}] #GREEN LED_A
-set_property -dict {PACKAGE_PIN BF26 IOSTANDARD LVCMOS18} [get_ports {led[3]}] #GREEN LED_A
-set_property -dict {PACKAGE_PIN BC25 IOSTANDARD LVCMOS18} [get_ports {led[4]}] #RGB LED_R
-set_property -dict {PACKAGE_PIN BB26 IOSTANDARD LVCMOS18} [get_ports {led[5]}] #RGB LED_G
-set_property -dict {PACKAGE_PIN BB25 IOSTANDARD LVCMOS18} [get_ports {led[6]}] #RGB LED_B
+set_property -dict {PACKAGE_PIN BD25 IOSTANDARD LVCMOS18} [get_ports {led[0]}] ;##GREEN LED_A
+set_property -dict {PACKAGE_PIN BE26 IOSTANDARD LVCMOS18} [get_ports {led[1]}] ;##GREEN LED_A
+set_property -dict {PACKAGE_PIN BD23 IOSTANDARD LVCMOS18} [get_ports {led[2]}] ;##GREEN LED_A
+set_property -dict {PACKAGE_PIN BF26 IOSTANDARD LVCMOS18} [get_ports {led[3]}] ;##GREEN LED_A
+set_property -dict {PACKAGE_PIN BC25 IOSTANDARD LVCMOS18} [get_ports {led[4]}] ;##RGB LED_R
+set_property -dict {PACKAGE_PIN BB26 IOSTANDARD LVCMOS18} [get_ports {led[5]}] ;##RGB LED_G
+set_property -dict {PACKAGE_PIN BB25 IOSTANDARD LVCMOS18} [get_ports {led[6]}] ;##RGB LED_B
 
 ############# I2C-local (to PMIC) ##################
 set_property -dict {PACKAGE_PIN BB24 IOSTANDARD LVCMOS18} [get_ports iic_scl_io]
 set_property -dict {PACKAGE_PIN BA24 IOSTANDARD LVCMOS18} [get_ports iic_sda_io]
+
+############# Analog Inputs to SysMon ##################
+set_property -dict {PACKAGE_PIN BD25 IOSTANDARD LVCMOS18} [get_ports {led[0]}] #GREEN LED_A
 
 ###############################################################################
 # Waivers & FalsePaths
