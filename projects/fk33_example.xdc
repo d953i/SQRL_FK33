@@ -113,13 +113,6 @@ set_property -dict {PACKAGE_PIN BB25 IOSTANDARD LVCMOS18} [get_ports led[6]] ;##
 set_property -dict {PACKAGE_PIN BB24 IOSTANDARD LVCMOS18} [get_ports iic_scl_io]
 set_property -dict {PACKAGE_PIN BA24 IOSTANDARD LVCMOS18} [get_ports iic_sda_io]
 
-############# Analog Inputs to SysMon ##################
-set_property -dict {PACKAGE_PIN BD25 IOSTANDARD LVCMOS18} [get_ports {led[0]}] #GREEN LED_A
-
-###############################################################################
-# Waivers & FalsePaths
-###############################################################################
-#
 ###############################################################################
 # Additional design / project settings
 ###############################################################################
@@ -152,6 +145,9 @@ resize_pblock [get_pblocks pblock_bd_i] -add {URAM288_X0Y0:URAM288_X4Y11}
 #resize_pblock [get_pblocks pblock_bd_i] -add {URAM288_X0Y0:URAM288_X4Y11}
 
 
+###############################################################################
+# Waivers & FalsePaths
+###############################################################################
 create_waiver -type CDC -id {CDC-1} -user "Dima" -desc "This is a safe CDC in this design per review with team" -internal -from [get_pins {*/*/inst/TWO_STACK.u_hbm_top/TWO_STACK_HBM.hbm_apb_arbiter_1/apb_mux_sel_r_reg[0]/C}] -to [get_pins */*/inst/TWO_STACK.u_hbm_top/TWO_STACK_HBM.u_xsdb_top_1/xsdb2adb_u0/*/CE] -timestamp "Wed Aug 14 14:20:19 GMT 2019"
 create_waiver -type CDC -id {CDC-1} -user "Dima" -desc "This is a safe CDC in this design per review with team" -internal -from [get_pins {*/*/inst/TWO_STACK.u_hbm_top/TWO_STACK_HBM.hbm_apb_arbiter_1/apb_mux_sel_r_reg[0]/C}] -to [get_pins */*/inst/TWO_STACK.u_hbm_top/TWO_STACK_HBM.u_xsdb_top_1/xsdb2adb_u0/*/D] -timestamp "Wed Aug 14 14:20:19 GMT 2019"
 create_waiver -type CDC -id {CDC-1} -user "Dima" -desc "This is a safe CDC in this design per review with team" -internal -from [get_pins {*/*/inst/TWO_STACK.u_hbm_top/TWO_STACK_HBM.u_xsdb_top_1/xsdb2adb_u0/*/C}] -to [get_pins */*/inst/TWO_STACK.u_hbm_top/TWO_STACK_HBM.hbm_apb_arbiter_1/apb_mux_sel_r_reg*/*] -timestamp "Wed Aug 14 14:20:19 GMT 2019"
