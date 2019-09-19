@@ -80,7 +80,7 @@ proc conv_temp_ltc3636 {value} {
     return [expr ($value * 400.0 / 65536.0) - 273.15]
 }
 
-#Inspired by @Briegel
+#Inspired by @bri3gel
 proc fk33_read_sysmon {} {
 
     run_hw_axi -quiet [create_hw_axi_txn -quiet -force r [get_hw_axis hw_axi_1] -address 3400 -type read]
