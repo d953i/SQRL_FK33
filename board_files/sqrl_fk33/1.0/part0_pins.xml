@@ -18,7 +18,7 @@
     <pin index="11" name ="pcie_perstn_rst" iostandard="LVCMOS18" loc="BE24"/>
 
     <pin index="12" name ="sysclk_200_p" iostandard="LVDS" loc="BC26"/>
-    <pin index="13" name ="sysclk_200_n" iostandard="LVDS" loc="AY23"/>
+    <pin index="13" name ="sysclk_200_n" iostandard="LVDS" loc="BC27"/>
 
     <pin index="14" name ="pcie_rx0_p"    loc="AL2"/>
     <pin index="15" name ="pcie_rx0_n"    loc="AL1"/>
