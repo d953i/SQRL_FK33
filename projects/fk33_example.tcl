@@ -24,8 +24,8 @@ set sourceRoot [join [lrange [file split [file dirname [info script]]] 0 end-2] 
 #puts stdout [join [lrange [file split [file dirname [info script]]] 0 end-2] "/"]
 #return -code 1
 
-if {[string compare [version -short] 2019.1.2] != 0} {
-    return -code error [format "Unsupported Vivado version. Try 2019.1.2"]
+if {[string compare [version -short] 2019.2] != 0} {
+    return -code error [format "Unsupported Vivado version. Try 2019.2"]
 }
 
 create_project $ProjectName ./$ProjectName -part xcvu33p-fsvh2104-2-e
