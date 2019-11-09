@@ -7,3 +7,6 @@ For example, in Vivado TCL console:
 ```source ../path_to_this_repo/SQRL_FK33/projects/fk33_example.tcl```
 <br><br>
 ![Vivado_Block_Diagram](images/Vivado_example1.PNG?raw=true "Vivado TCL Console")
+
+<br><br>
+![Vivado_Block_Diagram](images/Vivado_example2.PNG?raw=true "SQRL FK33 Example Vivado BlockDiagram")
