@@ -8,5 +8,5 @@ For example, in Vivado TCL console:
 <br><br>
 ![Vivado_Block_Diagram](images/Vivado_example1.PNG?raw=true "Vivado TCL Console")
 
-<br><br>
+<br>Example project block diagram<br>
 ![Vivado_Block_Diagram](images/Vivado_example2.PNG?raw=true "SQRL FK33 Example Vivado BlockDiagram")
