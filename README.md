@@ -1,6 +1,10 @@
 # Squirrels Research Labs - Forrest Kitten FPGA HBM2 boards
 SQRL FK33/FK35 board files, example designs and scripts.
 
+Copy board_files/sqrl_fk33 to your Vivado boards directory.<br>
+Linux default path: ```/tools/Xilinx/Vivado/2019.2/data/boards/board_file/sqrl_fk33```<br>
+Windows default path: ```C:/Xilinx/Vivado/2019.2/data/boards/board_file/sqrl_fk33```<br>
+
 To build example project use fk33_example.tcl script. 
 For example, in Vivado TCL console:
 <br>
