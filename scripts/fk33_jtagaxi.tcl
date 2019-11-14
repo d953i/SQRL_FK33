@@ -136,7 +136,7 @@ proc fk33_read_sysmon {} {
     run_hw_axi -quiet [create_hw_axi_txn -quiet -force r [get_hw_axis hw_axi_1] -address 3474 -type read]
     set vccbram_current [lindex [report_hw_axi_txn -t d4 [get_hw_axi_txns r]] 1]
 
-    puts [format "VCCINT  %0.2f A (%0.2f W)" $vccint_current  [expr $vccint_current *  (12.0 / $vccint)]]
-    puts [format "VCCHBM  %0.2f A (%0.2f W)" $vcchbm_current  [expr $vcchbm_current *  (12.0 / $vcchbm)]]
-    puts [format "VCCBARM %0.2f A (%0.2f W)" $vccbram_current [expr $vccbram_current * (12.0 / $vccbram)]]
+    puts [format "VCCINT  I = %0.2fA (%0.2fW)" $vccint_current  [expr $vccint_current *  (12.0 / $vccint)]]
+    puts [format "VCCHBM  I = %0.2fA (%0.2fW)" $vcchbm_current  [expr $vcchbm_current *  (12.0 / $vcchbm)]]
+    puts [format "VCCBRAM I = %0.2fA (%0.2fW)" $vccbram_current [expr $vccbram_current * (12.0 / $vccbram)]]
 }
