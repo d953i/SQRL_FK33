@@ -28,7 +28,7 @@ if {[string compare [version -short] 2019.2] != 0} {
     return -code error [format "Unsupported Vivado version. Try 2019.2"]
 }
 
-create_project $ProjectName ./$ProjectName -part xcvu33p-fsvh2104-2-e
+create_project $ProjectName ./$ProjectName -part "xcvu33p-fsvh2104-2-e"
 #create_project $ProjectName ./$ProjectName -part xcvu33p-fsvh2104-2-e-es1
 
 set_param synth.maxThreads 8
