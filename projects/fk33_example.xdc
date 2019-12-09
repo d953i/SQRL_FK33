@@ -83,12 +83,12 @@ set_property IOSTANDARD LVCMOS18 [get_ports {pcie_clkreq[0]}]
 ########### End PCIe ##################################
 
 ########### System Clock ##############################
-#set_property PACKAGE_PIN BC26 [get_ports {hbm_ref_clk_p[0]}]
-#set_property PACKAGE_PIN BC27 [get_ports {hbm_ref_clk_n[0]}]
-#set_property IOSTANDARD LVDS [get_ports {hbm_ref_clk_n[0]}]
-#set_property IOSTANDARD LVDS [get_ports {hbm_ref_clk_p[0]}]
-#set_property DIFF_TERM_ADV TERM_100 [get_ports {hbm_ref_clk_p[0]}]
-#set_property DIFF_TERM_ADV TERM_100 [get_ports {hbm_ref_clk_n[0]}]
+set_property PACKAGE_PIN BC26 [get_ports {sysref_clk_p[0]}]
+set_property PACKAGE_PIN BC27 [get_ports {sysref_clk_n[0]}]
+set_property IOSTANDARD LVDS [get_ports {sysref_clk_p[0]}]
+set_property IOSTANDARD LVDS [get_ports {sysref_clk_n[0]}]
+set_property DIFF_TERM_ADV TERM_100 [get_ports {sysref_clk_p[0]}]
+set_property DIFF_TERM_ADV TERM_100 [get_ports {sysref_clk_n[0]}]
 
 # DQS_BIAS only supported by DIFF_SSTL18
 #set_property DQS_BIAS TRUE [get_ports hbm_ref_clk_p]
