@@ -1,5 +1,33 @@
 #Assuming I2C controller base address is 0x0000_9000 and FK33 LED's connected to its GPO port.
 
+proc axil_setup_axis2mm {} {
+    set addr 0x00001000
+    #create_hw_axi_txn -force w0 [get_hw_axis hw_axi_1] -address [format 0x%08lx [expr $addr +  0]] -data [format 0x%016lx [expr ($value >>   0) & 0xFFFFFFFFFFFFFFFFFFFFFFFF]] -type write
+    create_hw_axi_txn -force w0 [get_hw_axis hw_axi_1] -address [format 0x%08lx [expr $addr +  1]] -data 0x00000100 -type write
+    create_hw_axi_txn -force w1 [get_hw_axis hw_axi_1] -address [format 0x%08lx [expr $addr +  2]] -data 0x00010000 -type write
+    run_hw_axi w0 w1
+}
+
+proc axil_write {addr value} {
+    create_hw_axi_txn -force w0 [get_hw_axis hw_axi_1] -address [format 0x%08x [expr 0x00001000 + $addr]] -data [format 0x%08x [expr $value]] -type write
+    run_hw_axi w0
+}
+
+proc axil_write0 {} {
+    create_hw_axi_txn -force w0 [get_hw_axis hw_axi_1] -address 0x00001000 -data 0x80000000 -type write
+    run_hw_axi w0
+}
+
+proc axil_read0 {} {
+    set addr 0x00001000
+    create_hw_axi_txn -force r0 [get_hw_axis hw_axi_1] -address [format 0x%08x [expr $addr +  0]] -type read
+    run_hw_axi -quiet r0
+    set d0 [get_property DATA [get_hw_axi_txn r0]]
+    return 0x[concat $d0]
+
+}
+
+
 proc fk33_regulator_temps {} {
     fk33_read_i2c_temp 0x18
     fk33_read_i2c_temp 0x19
