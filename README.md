@@ -1,5 +1,5 @@
 # Squirrels Research Labs - Forrest Kitten FPGA HBM2 boards
-SQRL FK33/FK35 board files, example designs and scripts.<br>
+SQRL FK33/FK35 board files, contraints, example designs and scripts.<br>
 <b>Boards for sale at SQRL store at</b> <a href='https://store.squirrelsresearch.com/sqrl/forest-kitten-a/'>https://store.squirrelsresearch.com/sqrl/forest-kitten-a/<a>
 
 Copy board_files/sqrl_fk33 to your Vivado boards directory.<br>
