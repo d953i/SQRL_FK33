@@ -27,8 +27,8 @@ set sourceRoot [join [lrange [file split [file dirname [info script]]] 0 end-2] 
 #puts stdout [join [lrange [file split [file dirname [info script]]] 0 end-2] "/"]
 #return -code 1
 
-if {[string compare [version -short] 2019.2] != 0} {
-    return -code error [format "Unsupported Vivado version. Try 2019.2"]
+if {[string compare [version -short] 2022.2] != 0} {
+    return -code error [format "Unsupported Vivado version. Try 2022.2"]
 }
 
 create_project $ProjectName ./$ProjectName -part "xcvu33p-fsvh2104-2-e"
@@ -70,7 +70,7 @@ set_property -dict [list CONFIG.M_AXI_DATA_WIDTH {64} CONFIG.M_AXI_ADDR_WIDTH {6
 set_property -dict [list CONFIG.M_HAS_BURST {0}] [get_bd_cells jtag_hbm]
 
 #Add AXI I2C to control voltages
-create_bd_cell -type ip -vlnv xilinx.com:ip:axi_iic:2.0 axi_iic_0
+create_bd_cell -type ip -vlnv xilinx.com:ip:axi_iic:2.1 axi_iic_0
 set_property -dict [list CONFIG.C_GPO_WIDTH {7} CONFIG.C_DEFAULT_VALUE {0x40}] [get_bd_cells axi_iic_0]
 make_bd_intf_pins_external  [get_bd_intf_pins axi_iic_0/IIC]
 set_property name iic [get_bd_intf_ports IIC_0]
@@ -167,7 +167,7 @@ if {$EnablePCIe == 1} {
     set_property -dict [list CONFIG.axisten_freq {250}] [get_bd_cells xdma]
     set_property -dict [list CONFIG.axilite_master_en {true} CONFIG.axilite_master_size {128} CONFIG.axilite_master_scale {Kilobytes} CONFIG.pf0_msix_cap_table_bir {BAR_3:2} CONFIG.pf0_msix_cap_pba_bir {BAR_3:2} CONFIG.axil_master_64bit_en {true} CONFIG.axil_master_prefetchable {true}] [get_bd_cells xdma]
 
-    create_bd_cell -type ip -vlnv xilinx.com:ip:util_ds_buf:2.1 util_ds_buf_0
+    create_bd_cell -type ip -vlnv xilinx.com:ip:util_ds_buf:2.2 util_ds_buf_0
     set_property -dict [list CONFIG.C_BUF_TYPE {IBUFDSGTE}] [get_bd_cells util_ds_buf_0]
        
     make_bd_intf_pins_external  [get_bd_intf_pins xdma/pcie_mgt]
