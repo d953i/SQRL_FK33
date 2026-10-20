@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<board schema_version="2.1" vendor="squirrelsresearch.com" name="fk33" display_name="Forest Kitten 33 (Active Cooling)" url="https://store.squirrelsresearch.com/sqrl/forest-kitten-a/" preset_file="preset.xml">
+<board schema_version="2.2" vendor="squirrelsresearch.com" name="fk35" display_name="Forest Kitten 35 (Active Cooling)" url="https://store.squirrelsresearch.com/sqrl/forest-kitten-a/" preset_file="preset.xml">
 
 <images>
-    <image name="fk33_active_heatsink_front.png" display_name="Forest Kitten (Active Cooling)" sub_type="board">
+    <image name="fk35_active_heatsink_front.png" display_name="Forest Kitten (Active Cooling)" sub_type="board">
         <description>Forest Kitten Board File Image</description>
     </image>
 </images>
@@ -11,8 +11,8 @@
     <revision id="0">1.0</revision>
 </compatible_board_revisions>
 
-<file_version>1.1</file_version>
-<description>A compact Virtex Ultrascale+ HBM XCVU33P board featuring a PCIe x16 edge connector and active cooling.</description>
+<file_version>1.0</file_version>
+<description>A compact Virtex Ultrascale+ HBM XCVU35P board featuring a PCIe x16 edge connector and active cooling.</description>
 
 <parameters>
     <parameter name="heat_sink_type" value="medium" value_type="string"/>
@@ -23,8 +23,8 @@
 </jumpers>
 
 <components>
-    <component name="part0" display_name="Forest Kitten 33 (Active Cooling)" type="fpga" part_name="xcvu33p-fsvh2104-2L-e" pin_map_file="part0_pins.xml" vendor="sqrl" spec_url="https://store.squirrelsresearch.com/sqrl/forest-kitten-a/">
-        <description>A compact Virtex Ultrascale+ HBM XCVU33P board featuring a PCIe x16 edge connector and active cooling.</description>
+    <component name="part0" display_name="Forest Kitten 35 (Active Cooling)" type="fpga" part_name="xcvu35p-fsvh2104-2L-e" pin_map_file="part0_pins.xml" vendor="sqrl" spec_url="https://store.squirrelsresearch.com/sqrl/forest-kitten-a/">
+        <description>A compact Virtex Ultrascale+ HBM XCVU35P board featuring a PCIe x16 edge connector and active cooling.</description>
         <interfaces>
             <interface mode="slave" name="pcie_refclk" type="xilinx.com:interface:diff_clock_rtl:1.0" of_component="pcie_refclk" preset_proc="pcie_refclk_preset">
                 <parameters>
@@ -410,7 +410,6 @@
         <description>1.8V LVDS differential 200 MHz oscillator used as differential clock on the board</description>
         <parameters>
             <parameter name="frequency" value="200000000"/>
-            <preferred_ip vendor="xilinx.com" library="ip" name="hbm" order="0"/>
         </parameters>
     </component>
     <component name="led_7bits" display_name="LED" type="chip" sub_type="led" major_group="General Purpose Input or Output" part_name="SML-LX0603GW-TR" vendor="LUMEX">
@@ -431,7 +430,7 @@
                 <preferred_ips>
                     <preferred_ip vendor="xilinx.com" library="ip" name="xdma" order="0"/>
                     <preferred_ip vendor="xilinx.com" library="ip" name="qdma" order="1"/>
-                    <preferred_ip vendor="xilinx.com" library="ip" name="pcie4_uscale_plus" order="2"/>
+                    <preferred_ip vendor="xilinx.com" library="ip" name="pcie4c_uscale_plus" order="2"/>
                 </preferred_ips>
             </component_mode>
             <component_mode name="pci_express_x2" display_name="pci_express x2 ">
@@ -443,7 +442,7 @@
                 <preferred_ips>
                     <preferred_ip vendor="xilinx.com" library="ip" name="xdma" order="0"/>
                     <preferred_ip vendor="xilinx.com" library="ip" name="qdma" order="1"/>
-                    <preferred_ip vendor="xilinx.com" library="ip" name="pcie4_uscale_plus" order="2"/>
+                    <preferred_ip vendor="xilinx.com" library="ip" name="pcie4c_uscale_plus" order="2"/>
                 </preferred_ips>
             </component_mode>
             <component_mode name="pci_express_x4" display_name="pci_express x4 ">
@@ -455,7 +454,7 @@
                 <preferred_ips>
                     <preferred_ip vendor="xilinx.com" library="ip" name="xdma" order="0"/>
                     <preferred_ip vendor="xilinx.com" library="ip" name="qdma" order="1"/>
-                    <preferred_ip vendor="xilinx.com" library="ip" name="pcie4_uscale_plus" order="2"/>
+                    <preferred_ip vendor="xilinx.com" library="ip" name="pcie4c_uscale_plus" order="2"/>
                 </preferred_ips>
             </component_mode>
             <component_mode name="pci_express_x8" display_name="pci_express x8 ">
@@ -467,7 +466,7 @@
                 <preferred_ips>
                     <preferred_ip vendor="xilinx.com" library="ip" name="xdma" order="0"/>
                     <preferred_ip vendor="xilinx.com" library="ip" name="qdma" order="1"/>
-                    <preferred_ip vendor="xilinx.com" library="ip" name="pcie4_uscale_plus" order="2"/>
+                    <preferred_ip vendor="xilinx.com" library="ip" name="pcie4c_uscale_plus" order="2"/>
                 </preferred_ips>
             </component_mode>
             <component_mode name="pci_express_x16" display_name="pci_express x16 ">
@@ -479,7 +478,7 @@
                 <preferred_ips>
                     <preferred_ip vendor="xilinx.com" library="ip" name="xdma" order="0"/>
                     <preferred_ip vendor="xilinx.com" library="ip" name="qdma" order="1"/>
-                    <preferred_ip vendor="xilinx.com" library="ip" name="pcie4_uscale_plus" order="2"/>
+                    <preferred_ip vendor="xilinx.com" library="ip" name="pcie4c_uscale_plus" order="2"/>
                 </preferred_ips>
             </component_mode>
         </component_modes>
@@ -494,22 +493,20 @@
 
 <connections>
     <connection name="part0_iic_main" component1="part0" component2="iic_main">
-        <connection_map name="part0_iic_main_1" typical_delay="5" c1_st_index="8" c1_end_index="10" c2_st_index="0" c2_end_index="2"/>
+        <connection_map name="part0_iic_main_1" typical_delay="5" c1_st_index="0" c1_end_index="1" c2_st_index="0" c2_end_index="1"/>
     </connection>
     <connection name="part0_led_7bits" component1="part0" component2="led_7bits">
-        <connection_map name="part0_led_8bits_1" typical_delay="5" c1_st_index="11" c1_end_index="18" c2_st_index="0" c2_end_index="7"/>
+        <connection_map name="part0_led_7bits_1" typical_delay="5" c1_st_index="2" c1_end_index="8" c2_st_index="0" c2_end_index="6"/>
     </connection>
     <connection name="part0_pcie_refclk" component1="part0" component2="pcie_refclk">
-        <connection_map name="part0_pcie_refclk1" typical_delay="5" c1_st_index="157" c1_end_index="158" c2_st_index="0" c2_end_index="1"/>
+        <connection_map name="part0_pcie_refclk1" typical_delay="5" c1_st_index="9" c1_end_index="10" c2_st_index="0" c2_end_index="1"/>
     </connection>
     <connection name="part0_pci_express" component1="part0" component2="pci_express">
-        <connection_map name="part0_pcie_express_1" c1_st_index="311" c1_end_index="374" c2_st_index="0" c2_end_index="63"/>
-    </connection>
-    <connection name="part0_pcie_perstn" component1="part0" component2="pcie_perstn">
-        <connection_map name="part0_pcie_perstn_1" c1_st_index="191" c1_end_index="191" c2_st_index="0" c2_end_index="0"/>
+        <connection_map name="part0_pcie_express_1" c1_st_index="14" c1_end_index="77" c2_st_index="0" c2_end_index="63"/>
+        <connection_map name="part0_pcie_perstn_1" c1_st_index="11" c1_end_index="11" c2_st_index="64" c2_end_index="64"/>
     </connection>
     <connection name="part0_sysclk_200" component1="part0" component2="sysclk_200">
-        <connection_map name="part0_sys_clk_200_1" typical_delay="5" c1_st_index="192" c1_end_index="193" c2_st_index="0" c2_end_index="1"/>
+        <connection_map name="part0_sys_clk_200_1" typical_delay="5" c1_st_index="12" c1_end_index="13" c2_st_index="0" c2_end_index="1"/>
     </connection>
  </connections>
 

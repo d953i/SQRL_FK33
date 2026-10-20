@@ -1,9 +1,37 @@
 
-set ProjectName fk33_example
+# source D:/Projects/_github/SQRL_FK33/projects/sqrl_fk_project.tcl
+
+#Board: FK33 (XCVU33P) or FK35 (XCVU35P). Same PCB and pinout, only the FPGA differs.
+set Board FK35
+
+if {$Board == "FK33"} {
+    set Part xcvu33p-fsvh2104-2-e
+} elseif {$Board == "FK35"} {
+    set Part xcvu35p-fsvh2104-2-e
+} else {
+    return -code error [format "Unsupported board %s. Use FK33 or FK35" $Board]
+}
+
+set ProjectName SQRL_${Board}
 set ProjectFolder ./$ProjectName
 
 set EnablePCIe 1
+#PCIe lanes: 1, 4, 8 or 16. PCIe generation: 1 (2.5 GT/s), 2 (5.0 GT/s), 3 (8.0 GT/s) or 4 (16.0 GT/s).
+#PCIE4C block supports Gen4 up to x8, x16 is limited to Gen3.
+set PCIeLanes 1
+set PCIeGen 1
 set HBMGlobalSwitch 1
+
+set PCIeSpeeds [dict create 1 2.5_GT/s 2 5.0_GT/s 3 8.0_GT/s 4 16.0_GT/s]
+if {[lsearch -exact {1 4 8 16} $PCIeLanes] < 0} {
+    return -code error [format "Unsupported PCIe lanes %s. Use 1, 4, 8 or 16" $PCIeLanes]
+}
+if {![dict exists $PCIeSpeeds $PCIeGen]} {
+    return -code error [format "Unsupported PCIe generation %s. Use 1, 2, 3 or 4" $PCIeGen]
+}
+if {$PCIeLanes == 16 && $PCIeGen == 4} {
+    return -code error [format "PCIe Gen4 x16 is not supported by PCIE4C block. Use Gen4 x8 or Gen3 x16"]
+}
 
 #Remove unnecessary files.
 set file_list [glob -nocomplain webtalk*.*]
@@ -27,11 +55,11 @@ set sourceRoot [join [lrange [file split [file dirname [info script]]] 0 end-2] 
 #puts stdout [join [lrange [file split [file dirname [info script]]] 0 end-2] "/"]
 #return -code 1
 
-if {[string compare [version -short] 2022.2] != 0} {
-    return -code error [format "Unsupported Vivado version. Try 2022.2"]
+if {[string compare [version -short] 2025.2] != 0} {
+    return -code error [format "Unsupported Vivado version. Try 2025.2"]
 }
 
-create_project $ProjectName ./$ProjectName -part "xcvu33p-fsvh2104-2-e"
+create_project $ProjectName ./$ProjectName -part $Part
 #create_project $ProjectName ./$ProjectName -part xcvu33p-fsvh2104-2-e-es1
 
 set_param synth.maxThreads 8
@@ -75,7 +103,7 @@ set_property -dict [list CONFIG.C_GPO_WIDTH {7} CONFIG.C_DEFAULT_VALUE {0x40}] [
 make_bd_intf_pins_external  [get_bd_intf_pins axi_iic_0/IIC]
 set_property name iic [get_bd_intf_ports IIC_0]
 
-create_bd_cell -type ip -vlnv xilinx.com:ip:util_vector_logic:2.0 led_inv
+create_bd_cell -type inline_hdl -vlnv xilinx.com:inline_hdl:ilvector_logic:1.0 led_inv
 set_property -dict [list CONFIG.C_SIZE {7} CONFIG.C_OPERATION {not} CONFIG.LOGO_FILE {data/sym_notgate.png}] [get_bd_cells led_inv]
 connect_bd_net [get_bd_pins led_inv/Op1] [get_bd_pins axi_iic_0/gpo]
 make_bd_pins_external  [get_bd_pins led_inv/Res]
@@ -153,10 +181,10 @@ set_property name Vaux13 [get_bd_intf_ports Vaux13_0]
 
 
 if {$EnablePCIe == 1} {
-    create_bd_cell -type ip -vlnv xilinx.com:ip:xdma:4.1 xdma
+    create_bd_cell -type ip -vlnv xilinx.com:ip:xdma:4.2 xdma
     set_property -dict [list CONFIG.cfg_mgmt_if {false}] [get_bd_cells xdma]
-    set_property -dict [list CONFIG.pl_link_cap_max_link_width {X1} CONFIG.pl_link_cap_max_link_speed {8.0_GT/s}] [get_bd_cells xdma]
-    #set_property -dict [list CONFIG.pl_link_cap_max_link_width {X16} CONFIG.pl_link_cap_max_link_speed {8.0_GT/s} CONFIG.axi_data_width {512_bit}] [get_bd_cells xdma]
+    #AXI data width follows the link width and speed (64 to 512 bit).
+    set_property -dict [list CONFIG.pl_link_cap_max_link_width X$PCIeLanes CONFIG.pl_link_cap_max_link_speed [dict get $PCIeSpeeds $PCIeGen]] [get_bd_cells xdma]
     #set_property -dict [list CONFIG.xdma_rnum_chnl {4} CONFIG.xdma_wnum_chnl {4}] [get_bd_cells xdma]
     set_property -dict [list CONFIG.xdma_pcie_64bit_en {true} CONFIG.pf0_msix_cap_table_bir {BAR_1:0} CONFIG.pf0_msix_cap_pba_bir {BAR_1:0} CONFIG.xdma_pcie_prefetchable {true}] [get_bd_cells xdma]
     set_property -dict [list CONFIG.pcie_blk_locn {PCIE4C_X1Y0}] [get_bd_cells xdma]
@@ -180,14 +208,14 @@ if {$EnablePCIe == 1} {
  
     connect_bd_net [get_bd_pins xdma/axi_aclk] [get_bd_pins clk_wiz_0/clk_in1]
     
-    create_bd_cell -type ip -vlnv xilinx.com:ip:xlconstant:1.1 xlconstant_0
+    create_bd_cell -type inline_hdl -vlnv xilinx.com:inline_hdl:ilconstant:1.0 xlconstant_0
     make_bd_pins_external  [get_bd_pins xlconstant_0/dout]
     set_property name pcie_clkreq [get_bd_ports dout_0]
     
     set_property -dict [list CONFIG.NUM_SI {2} CONFIG.NUM_MI {2}] [get_bd_cells pcie2hbm]
     connect_bd_intf_net [get_bd_intf_pins xdma/M_AXI] [get_bd_intf_pins pcie2hbm/S01_AXI]
     
-    set_property -dict [list CONFIG.NUM_SI {2} CONFIG.NUM_MI {1}] [get_bd_cells pcie2axil]
+    set_property -dict [list CONFIG.NUM_SI {2} CONFIG.NUM_MI {2}] [get_bd_cells pcie2axil]
 
     connect_bd_net [get_bd_pins xdma/axi_aclk] [get_bd_pins pcie2hbm/aclk]
     connect_bd_net [get_bd_pins xdma/axi_aresetn] [get_bd_pins pcie2hbm/aresetn]
@@ -233,7 +261,7 @@ if {$EnablePCIe == 1} {
     
 } else {
     
-    create_bd_cell -type ip -vlnv xilinx.com:ip:util_ds_buf:2.1 util_ds_buf_1
+    create_bd_cell -type ip -vlnv xilinx.com:ip:util_ds_buf:2.2 util_ds_buf_1
     set_property -dict [list CONFIG.C_BUF_TYPE {IBUFDS}] [get_bd_cells util_ds_buf_1]
     make_bd_intf_pins_external  [get_bd_intf_pins util_ds_buf_1/CLK_IN_D]
     set_property name sysref [get_bd_intf_ports CLK_IN_D_0]
@@ -309,38 +337,40 @@ if {$HBMGlobalSwitch == 1} {
     assign_bd_address -offset 0x1E0000000 -range 256M [get_bd_addr_segs {hbm/SAXI_16/HBM_MEM30 }]
     assign_bd_address -offset 0x1F0000000 -range 256M [get_bd_addr_segs {hbm/SAXI_16/HBM_MEM31 }]
 
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM00] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM01] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM02] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM03] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM04] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM05] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM06] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM07] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM08] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM09] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM10] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM11] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM12] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM13] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM14] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM15] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM16] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM17] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM18] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM19] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM20] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM21] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM22] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM23] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM24] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM25] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM26] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM27] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM28] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM29] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM30] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
-    exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM31] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+    if {$EnablePCIe == 1} {
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM00] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM01] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM02] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM03] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM04] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM05] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM06] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM07] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM08] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM09] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM10] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM11] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM12] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM13] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM14] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM15] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM16] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM17] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM18] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM19] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM20] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM21] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM22] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM23] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM24] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM25] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM26] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM27] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM28] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM29] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM30] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+        exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_00/HBM_MEM31] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
+    }
 
     exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM00] -target_address_space [get_bd_addr_spaces jtag_hbm/Data]
     exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM01] -target_address_space [get_bd_addr_spaces jtag_hbm/Data]

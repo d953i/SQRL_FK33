@@ -1,4 +1,4 @@
-#open_project fk33_example
+#open_project SQRL_FK33
 
 generate_target all [get_files bd.bd]
 
