@@ -1,0 +1,6 @@
+######### sqrl_fk35 change log ##############
+
+1.0
+	- Initial board file release for Vivado 2019.2 (schema_version 2.1).
+	- Same PCB as Forest Kitten 33 (board file sqrl_fk33 1.2) with XCVU35P in the same FSVH2104 package; pinout, PCIe block and GT quads are identical.
+	- Part xcvu35p-fsvh2104-2-e (production -2 chip). FK33 keeps -2L for its ES chip.

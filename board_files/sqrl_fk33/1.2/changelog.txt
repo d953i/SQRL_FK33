@@ -1,5 +1,11 @@
 ######### sqrl_fk33 chnage log ##############
 
+1.2
+	- Vivado 2019.2 version: board.xml keeps schema_version 2.1 (the Vivado 2025.2 version uses 2.2)
+	- Removed preferred_ip from sysclk_200 component parameters (not allowed by the board schema)
+	- PCI Express component modes: preferred IP pcie4_uscale_plus -> pcie4c_uscale_plus (VU33P/VU35P have PCIE4C blocks)
+	- Fixed connection pin indexes to match part0_pins.xml, moved pcie_perstn into the pci_express connection
+
 1.1
 	- Updated broken links in board.xml
 	- Changed instances of "FK33" to the final product name "Forest Kitten (Active Cooling)" in board.xml
