@@ -500,7 +500,7 @@ close $fh
 #Add the configuration memory to the project's Hardware Manager (saved in ./SQRL_<Board>/SQRL_<Board>.hw), so the GUI's
 #Program Configuration Memory Device has the flash part and image files filled in. Needs the board on JTAG, skipped otherwise.
 set Device [lindex [split $Part -] 0]
-if {[catch {open_hw_manager}]} { open_hw }
+if {[catch {open_hw_manager}]} { catch {open_hw} }
 if {[catch {
     if {[current_hw_server -quiet] eq ""} { connect_hw_server }
     open_hw_target

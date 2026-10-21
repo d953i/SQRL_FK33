@@ -33,7 +33,8 @@ if {$stale} {
 puts "Flash images: [join $Mcs {, }]"
 
 set Device [lindex [split [get_property PART [current_project]] -] 0]
-if {[catch {open_hw_manager}]} { open_hw }
+#Errors here only mean the Hardware Manager is already open (e.g. in the GUI).
+if {[catch {open_hw_manager}]} { catch {open_hw} }
 if {[current_hw_server -quiet] eq ""} { connect_hw_server }
 catch {open_hw_target}
 set dev [lindex [get_hw_devices -quiet ${Device}_0] 0]

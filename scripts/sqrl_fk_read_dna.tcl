@@ -19,7 +19,8 @@ proc same_hex {a b} {
     return [expr {[string trimleft [string toupper $a] 0] eq [string trimleft [string toupper $b] 0]}]
 }
 
-if {[catch {open_hw_manager}]} { open_hw }
+#Errors here only mean the Hardware Manager is already open (e.g. in the GUI).
+if {[catch {open_hw_manager}]} { catch {open_hw} }
 if {[current_hw_server -quiet] eq ""} { connect_hw_server }
 catch {open_hw_target}
 
