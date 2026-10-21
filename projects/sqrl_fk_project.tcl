@@ -2,7 +2,13 @@
 # source D:/Projects/_github/SQRL_FK33/projects/sqrl_fk_project.tcl
 
 #Board: FK33 (XCVU33P) or FK35 (XCVU35P). Same PCB and pinout, only the FPGA differs.
+#PCIe lanes: 1, 4, 8 or 16. PCIe generation: 1 (2.5 GT/s), 2 (5.0 GT/s), 3 (8.0 GT/s) or 4 (16.0 GT/s).
+#PCIE4C block supports Gen4 up to x8, x16 is limited to Gen3.
 set Board FK35
+set EnablePCIe 1
+set PCIeLanes 8   
+set PCIeGen 4     
+set HBMGlobalSwitch 1
 
 if {$Board == "FK33"} {
     set Part xcvu33p-fsvh2104-2-e
@@ -14,13 +20,6 @@ if {$Board == "FK33"} {
 
 set ProjectName SQRL_${Board}
 set ProjectFolder ./$ProjectName
-
-set EnablePCIe 1
-#PCIe lanes: 1, 4, 8 or 16. PCIe generation: 1 (2.5 GT/s), 2 (5.0 GT/s), 3 (8.0 GT/s) or 4 (16.0 GT/s).
-#PCIE4C block supports Gen4 up to x8, x16 is limited to Gen3.
-set PCIeLanes 8
-set PCIeGen 4
-set HBMGlobalSwitch 1
 
 #QSPI configuration flash (same on FK33 and FK35): two Micron MT25QU256ABA8E12 (256 Mb each, 1.8V) in dual QSPI (SPIx8).
 set FlashPart mt25qu256-spi-x1_x2_x4_x8
