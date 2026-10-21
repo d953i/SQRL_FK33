@@ -16,6 +16,9 @@ To build example project use sqrl_fk_project.tcl script. Options at the top of t
 
 To program both flashes with the project's bitstream and boot the FPGA from them: in the Vivado Tcl console with the project open, source scripts/sqrl_fk_program_flash.tcl, or run scripts/sqrl_fk_program_flash.bat path\to\SQRL_FK35.xpr<br>
 
+Board in a PC (Windows): the PC finds the PCIe device only if the FPGA is already configured from flash when the PC boots, otherwise the BIOS hides the slot. Before reconfiguring the FPGA of a board the PC has already enumerated (JTAG bitstream, flash programming or boot from flash), disable its "PCI Device" in Device Manager so the PCIe link going down does not crash Windows, then restart Windows to enumerate the new design.<br>
+scripts/sqrl_fk_program_flash_pc.bat path\to\SQRL_FK35.xpr does all of this: disables the device, programs the flashes and boots the FPGA, then removes the old device and rescans so Windows finds the new design without a restart. It needs administrator rights and asks for them (UAC).<br>
+
 The example design includes the FPGA device DNA (96-bit unique ID), readable on the AXI-Lite bus (PCIe BAR or JTAG-to-AXI): 0x1000 DNA[31:0], 0x1008 DNA[63:32], 0x7000 DNA[95:64], 0x7008 bit 0 = ready.<br>
 scripts/sqrl_fk_read_dna.bat (or sqrl_fk_read_dna.tcl) prints the DNA over JTAG, and compares it with the design's copy when the design is loaded.<br>
 
