@@ -34,7 +34,8 @@ foreach dev $devices {
     puts "DNA $dev (JTAG eFUSE):        $fuse"
 
     #jtag_axil is the 32-bit JTAG-to-AXI master on the AXI-Lite bus (jtag_hbm is the 64-bit one).
-    set axi [get_hw_axis -quiet -of_objects $dev -filter {CELL_NAME =~ "*jtag_axil*"}]
+    #CELL_NAME is empty without a probes file, so pick it by data width.
+    set axi [lindex [get_hw_axis -quiet -of_objects $dev -filter {AXI_DATA_WIDTH == 32}] 0]
     if {$axi eq ""} {
         puts "DNA $dev (design dna_reader): no jtag_axil core in the loaded design"
         continue
@@ -43,12 +44,13 @@ foreach dev $devices {
     create_hw_axi_txn -quiet -force dna_us  $axi -address 0x00001008 -type read
     create_hw_axi_txn -quiet -force dna_ms  $axi -address 0x00007000 -type read
     create_hw_axi_txn -quiet -force dna_rdy $axi -address 0x00007008 -type read
-    if {[catch {run_hw_axi -quiet dna_ls dna_us dna_ms dna_rdy}]} {
+    #Reads from unmapped addresses do not fail, the AXI response (DECERR) is in STATUS.RRESP.
+    if {[catch {run_hw_axi -quiet dna_ls dna_us dna_ms dna_rdy}] || [get_property STATUS.RRESP $axi] ne "OKAY"} {
         puts "DNA $dev (design dna_reader): no dna_reader registers in the loaded design"
         continue
     }
     set design [string toupper "[get_property DATA [get_hw_axi_txn dna_ms]][get_property DATA [get_hw_axi_txn dna_us]][get_property DATA [get_hw_axi_txn dna_ls]]"]
-    set ready [expr {0x[get_property DATA [get_hw_axi_txn dna_rdy]] & 1}]
+    set ready [expr {[scan [get_property DATA [get_hw_axi_txn dna_rdy]] %x] & 1}]
     if {[same_hex $design $fuse]} {
         set match "matches eFUSE"
     } elseif {[same_hex [bits_to_hex [string reverse [hex_to_bits $design]]] $fuse]} {

@@ -497,4 +497,34 @@ refresh_hw_device $dev
 program_hw_cfgmem -hw_cfgmem $cfgmem} [lindex [split $Part -] 0] $FlashPart $ImplDir]
 close $fh
 
+#Add the configuration memory to the project's Hardware Manager (saved in ./SQRL_<Board>/SQRL_<Board>.hw), so the GUI's
+#Program Configuration Memory Device has the flash part and image files filled in. Needs the board on JTAG, skipped otherwise.
+set Device [lindex [split $Part -] 0]
+if {[catch {open_hw_manager}]} { open_hw }
+if {[catch {
+    if {[current_hw_server -quiet] eq ""} { connect_hw_server }
+    open_hw_target
+    set dev [lindex [get_hw_devices -quiet ${Device}_0] 0]
+    if {$dev eq ""} { error "no $Device on the JTAG chain" }
+    current_hw_device $dev
+    refresh_hw_device -update_hw_probes false $dev
+    create_hw_cfgmem -hw_device $dev [lindex [get_cfgmem_parts $FlashPart] 0]
+    set cfgmem [get_property PROGRAM.HW_CFGMEM $dev]
+    set_property PROGRAM.ADDRESS_RANGE use_file $cfgmem
+    set_property PROGRAM.FILES [list $ImplDir/bd_wrapper_primary.mcs $ImplDir/bd_wrapper_secondary.mcs] $cfgmem
+    set_property PROGRAM.PRM_FILES [list $ImplDir/bd_wrapper_primary.prm $ImplDir/bd_wrapper_secondary.prm] $cfgmem
+    set_property PROGRAM.UNUSED_PIN_TERMINATION pull-none $cfgmem
+    set_property PROGRAM.BLANK_CHECK 0 $cfgmem
+    set_property PROGRAM.ERASE 1 $cfgmem
+    set_property PROGRAM.CFG_PROGRAM 1 $cfgmem
+    set_property PROGRAM.VERIFY 1 $cfgmem
+    set_property PROGRAM.CHECKSUM 0 $cfgmem
+    puts "Hardware Manager: added $FlashPart to $dev"
+} msg]} {
+    puts "WARNING: Configuration memory not added to Hardware Manager ($msg). Add it later with Add Configuration Memory Device ($FlashPart)."
+}
+catch {close_hw_target}
+catch {disconnect_hw_server}
+if {[catch {close_hw_manager}]} { catch {close_hw} }
+
 

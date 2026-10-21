@@ -12,7 +12,9 @@ To build example project use sqrl_fk_project.tcl script. Options at the top of t
 - Board: FK33 (XCVU33P) or FK35 (XCVU35P), project is created in SQRL_FK33 or SQRL_FK35 folder<br>
 - EnablePCIe: 1 to include XDMA PCIe, 0 for JTAG-only design<br>
 - PCIeLanes: 1, 4, 8 or 16 and PCIeGen: 1, 2, 3 or 4 (up to Gen3 x16 or Gen4 x8, default Gen4 x8)<br>
-- FlashPart / FlashSizeMB: configuration flash, two MT25QU256 in dual QSPI (SPIx8, 64 MB) on both boards. The build also writes bd_wrapper_primary/_secondary .mcs/.prm next to the bitstream; source SQRL_FK3x/program_flash.tcl to program both flashes over JTAG<br>
+- FlashPart / FlashSizeMB: configuration flash, two MT25QU256 in dual QSPI (SPIx8, 64 MB) on both boards. The build also writes bd_wrapper_primary/_secondary .mcs/.prm next to the bitstream. If the board is on JTAG during project creation, the flash is also added to the project's Hardware Manager as its configuration memory device<br>
+
+To program both flashes with the project's bitstream and boot the FPGA from them: in the Vivado Tcl console with the project open, source scripts/sqrl_fk_program_flash.tcl, or run scripts/sqrl_fk_program_flash.bat path\to\SQRL_FK35.xpr<br>
 
 The example design includes the FPGA device DNA (96-bit unique ID), readable on the AXI-Lite bus (PCIe BAR or JTAG-to-AXI): 0x1000 DNA[31:0], 0x1008 DNA[63:32], 0x7000 DNA[95:64], 0x7008 bit 0 = ready.<br>
 scripts/sqrl_fk_read_dna.bat (or sqrl_fk_read_dna.tcl) prints the DNA over JTAG, and compares it with the design's copy when the design is loaded.<br>
