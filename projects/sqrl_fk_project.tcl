@@ -69,6 +69,10 @@ create_project $ProjectName ./$ProjectName -part $Part
 set_param synth.maxThreads 8
 set_param general.maxThreads 12
 
+#HDL modules used as module references in the block design.
+add_files -norecurse $scriptPath/hdl/dna_reader.v
+update_compile_order -fileset sources_1
+
 create_bd_design "bd"
 
 create_bd_cell -type ip -vlnv xilinx.com:ip:hbm:1.0 hbm
@@ -298,13 +302,33 @@ if {$EnablePCIe == 1} {
     connect_bd_net [get_bd_ports pcie_perstn] [get_bd_pins hbm_reset/ext_reset_in]
 }
 
+#Device DNA: dna_reader shifts the 96-bit DNA out of DNA_PORTE2 after configuration.
+#AXI-Lite (PCIe BAR / jtag_axil) offsets match the SQRL factory design:
+#0x1000 DNA[31:0], 0x1008 DNA[63:32], 0x7000 DNA[95:64], 0x7008 bit 0 = ready.
+create_bd_cell -type module -reference dna_reader dna_reader_0
+connect_bd_net [get_bd_pins clk_wiz_0/clk_out1] [get_bd_pins dna_reader_0/clk]
 
+create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 dna_gpio_0
+set_property -dict [list CONFIG.C_IS_DUAL {1} CONFIG.C_ALL_INPUTS {1} CONFIG.C_ALL_INPUTS_2 {1} CONFIG.C_GPIO_WIDTH {32} CONFIG.C_GPIO2_WIDTH {32}] [get_bd_cells dna_gpio_0]
+create_bd_cell -type ip -vlnv xilinx.com:ip:axi_gpio:2.0 dna_gpio_1
+set_property -dict [list CONFIG.C_IS_DUAL {1} CONFIG.C_ALL_INPUTS {1} CONFIG.C_ALL_INPUTS_2 {1} CONFIG.C_GPIO_WIDTH {32} CONFIG.C_GPIO2_WIDTH {1}] [get_bd_cells dna_gpio_1]
+connect_bd_net [get_bd_pins dna_reader_0/dna_ls] [get_bd_pins dna_gpio_0/gpio_io_i]
+connect_bd_net [get_bd_pins dna_reader_0/dna_us] [get_bd_pins dna_gpio_0/gpio2_io_i]
+connect_bd_net [get_bd_pins dna_reader_0/dna_ms] [get_bd_pins dna_gpio_1/gpio_io_i]
+connect_bd_net [get_bd_pins dna_reader_0/ready] [get_bd_pins dna_gpio_1/gpio2_io_i]
 
+set_property CONFIG.NUM_MI {4} [get_bd_cells pcie2axil]
+connect_bd_intf_net [get_bd_intf_pins pcie2axil/M02_AXI] [get_bd_intf_pins dna_gpio_0/S_AXI]
+connect_bd_intf_net [get_bd_intf_pins pcie2axil/M03_AXI] [get_bd_intf_pins dna_gpio_1/S_AXI]
+connect_bd_net [get_bd_pins pcie2axil/aclk] [get_bd_pins dna_gpio_0/s_axi_aclk] [get_bd_pins dna_gpio_1/s_axi_aclk]
+connect_bd_net [get_bd_pins pcie2axil/aresetn] [get_bd_pins dna_gpio_0/s_axi_aresetn] [get_bd_pins dna_gpio_1/s_axi_aresetn]
 
 regenerate_bd_layout
 save_bd_design
 
+assign_bd_address -offset 0x00001000 -range 4K [get_bd_addr_segs {dna_gpio_0/S_AXI/Reg}]
 assign_bd_address -offset 0x00003000 -range 4K [get_bd_addr_segs {system_management_wiz_0/S_AXI_LITE/Reg}]
+assign_bd_address -offset 0x00007000 -range 4K [get_bd_addr_segs {dna_gpio_1/S_AXI/Reg}]
 assign_bd_address -offset 0x00009000 -range 4K [get_bd_addr_segs {axi_iic_0/S_AXI/Reg}]
 
 if {$HBMGlobalSwitch == 1} {
