@@ -22,6 +22,10 @@ set PCIeLanes 8
 set PCIeGen 4
 set HBMGlobalSwitch 1
 
+#QSPI configuration flash (same on FK33 and FK35): two Micron MT25QU256ABA8E12 (256 Mb each, 1.8V) in dual QSPI (SPIx8).
+set FlashPart mt25qu256-spi-x1_x2_x4_x8
+set FlashSizeMB 64
+
 set PCIeSpeeds [dict create 1 2.5_GT/s 2 5.0_GT/s 3 8.0_GT/s 4 16.0_GT/s]
 if {[lsearch -exact {1 4 8 16} $PCIeLanes] < 0} {
     return -code error [format "Unsupported PCIe lanes %s. Use 1, 4, 8 or 16" $PCIeLanes]
@@ -427,8 +431,8 @@ if {$HBMGlobalSwitch == 1} {
 }
    
 #set_property PR_FLOW 1 [current_project]
-add_files -fileset constrs_1 -norecurse $scriptPath/fk33_example.xdc
-set_property target_constrs_file $scriptPath/fk33_example.xdc [current_fileset -constrset]
+add_files -fileset constrs_1 -norecurse $scriptPath/sqrl_fk.xdc
+set_property target_constrs_file $scriptPath/sqrl_fk.xdc [current_fileset -constrset]
 
 make_wrapper -files [get_files ./$ProjectName/$ProjectName.srcs/sources_1/bd/bd/bd.bd] -top
 add_files -norecurse ./$ProjectName/$ProjectName.srcs/sources_1/bd/bd/hdl/bd_wrapper.v
@@ -436,13 +440,38 @@ update_compile_order -fileset sources_1
 
 set_property strategy Performance_RefinePlacement [get_runs impl_1]
 
-#open_hw
-#create_hw_cfgmem -hw_device [lindex [get_hw_devices xcvu33p_0] 0] [lindex [get_cfgmem_parts {mt25qu256-spi-x1_x2_x4}] 0]
-#set_property PROGRAM.BLANK_CHECK  0 [ get_property PROGRAM.HW_CFGMEM [lindex [get_hw_devices xcvu33p_0] 0]]
-#set_property PROGRAM.ERASE  1 [ get_property PROGRAM.HW_CFGMEM [lindex [get_hw_devices xcvu33p_0] 0]]
-#set_property PROGRAM.CFG_PROGRAM  1 [ get_property PROGRAM.HW_CFGMEM [lindex [get_hw_devices xcvu33p_0] 0]]
-#set_property PROGRAM.VERIFY  1 [ get_property PROGRAM.HW_CFGMEM [lindex [get_hw_devices xcvu33p_0] 0]]
-#set_property PROGRAM.CHECKSUM  0 [ get_property PROGRAM.HW_CFGMEM [lindex [get_hw_devices xcvu33p_0] 0]]
-#close_hw
+#QSPI flash images: after write_bitstream, write bd_wrapper_primary/_secondary .mcs/.prm in the impl_1 run folder.
+set FlashImageTcl [file normalize $ProjectFolder/write_flash_image.tcl]
+set fh [open $FlashImageTcl w]
+puts $fh [format {write_cfgmem -force -format mcs -size %d -interface SPIx8 -loadbit {up 0x00000000 bd_wrapper.bit} -file bd_wrapper.mcs} $FlashSizeMB]
+close $fh
+add_files -fileset utils_1 -norecurse $FlashImageTcl
+set_property STEPS.WRITE_BITSTREAM.TCL.POST $FlashImageTcl [get_runs impl_1]
+
+#Program the QSPI flash over JTAG after a build: source ./SQRL_<Board>/program_flash.tcl in the Vivado Tcl console.
+set ImplDir [get_property DIRECTORY [get_runs impl_1]]
+set fh [open $ProjectFolder/program_flash.tcl w]
+puts $fh [format {if {[catch {open_hw_manager}]} { open_hw }
+connect_hw_server
+open_hw_target
+set dev [lindex [get_hw_devices %1$s_0] 0]
+current_hw_device $dev
+refresh_hw_device -update_hw_probes false $dev
+create_hw_cfgmem -hw_device $dev [lindex [get_cfgmem_parts %2$s] 0]
+set cfgmem [get_property PROGRAM.HW_CFGMEM $dev]
+set_property PROGRAM.ADDRESS_RANGE use_file $cfgmem
+set_property PROGRAM.FILES [list {%3$s/bd_wrapper_primary.mcs} {%3$s/bd_wrapper_secondary.mcs}] $cfgmem
+set_property PROGRAM.PRM_FILES [list {%3$s/bd_wrapper_primary.prm} {%3$s/bd_wrapper_secondary.prm}] $cfgmem
+set_property PROGRAM.UNUSED_PIN_TERMINATION pull-none $cfgmem
+set_property PROGRAM.BLANK_CHECK 0 $cfgmem
+set_property PROGRAM.ERASE 1 $cfgmem
+set_property PROGRAM.CFG_PROGRAM 1 $cfgmem
+set_property PROGRAM.VERIFY 1 $cfgmem
+set_property PROGRAM.CHECKSUM 0 $cfgmem
+create_hw_bitstream -hw_device $dev [get_property PROGRAM.HW_CFGMEM_BITFILE $dev]
+program_hw_devices $dev
+refresh_hw_device $dev
+program_hw_cfgmem -hw_cfgmem $cfgmem} [lindex [split $Part -] 0] $FlashPart $ImplDir]
+close $fh
 
 

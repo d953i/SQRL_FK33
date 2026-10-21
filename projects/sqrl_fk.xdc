@@ -122,10 +122,14 @@ set_property -dict {PACKAGE_PIN BA24 IOSTANDARD LVCMOS18} [get_ports iic_sda_io]
 # Should be able to push to 140 (flash part accepts 166; 15% tolerance on internal osc), so 127 really
 set_property BITSTREAM.CONFIG.CONFIGRATE 127.5 [current_design]
 #set_property BITSTREAM.CONFIG.EXTMASTERCCLK_EN Div-1 [current_design]
-set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 4 [current_design]
-set_property CONFIG_MODE SPIx4 [current_design]
+# Two MT25QU256 (256 Mb each) in dual QSPI: U5 on D00-D03, U6 on D04-D07 and FCS2_B (bank 65).
+# 512 Mb total holds even uncompressed bitstreams (VU33P 227 Mb, VU35P 453 Mb).
+set_property BITSTREAM.CONFIG.SPI_BUSWIDTH 8 [current_design]
+set_property CONFIG_MODE SPIx8 [current_design]
 set_property BITSTREAM.CONFIG.SPI_FALL_EDGE YES [current_design]
 set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
+# Each flash holds half of the image; half of VU35P (28 MB) is over 16 MB, so use 4-byte SPI addresses.
+set_property BITSTREAM.CONFIG.SPI_32BIT_ADDR YES [current_design]
 
 
 ###############################################################################
