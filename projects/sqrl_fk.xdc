@@ -135,14 +135,16 @@ set_property BITSTREAM.CONFIG.SPI_32BIT_ADDR YES [current_design]
 ###############################################################################
 # PBlocks
 ###############################################################################
-create_pblock pblock_bd_i
-add_cells_to_pblock [get_pblocks pblock_bd_i] [get_cells -quiet [list bd_i]]
-resize_pblock [get_pblocks pblock_bd_i] -add {SLICE_X219Y0:SLICE_X232Y239 SLICE_X0Y0:SLICE_X218Y50}
-resize_pblock [get_pblocks pblock_bd_i] -add {DSP48E2_X31Y0:DSP48E2_X31Y89 DSP48E2_X0Y0:DSP48E2_X30Y13}
-resize_pblock [get_pblocks pblock_bd_i] -add {LAGUNA_X30Y0:LAGUNA_X31Y119}
-resize_pblock [get_pblocks pblock_bd_i] -add {RAMB18_X13Y0:RAMB18_X13Y95 RAMB18_X0Y0:RAMB18_X12Y19}
-resize_pblock [get_pblocks pblock_bd_i] -add {RAMB36_X13Y0:RAMB36_X13Y47 RAMB36_X0Y0:RAMB36_X12Y9}
-resize_pblock [get_pblocks pblock_bd_i] -add {URAM288_X0Y0:URAM288_X4Y11}
+# No pblock for bd_i with PCIe Tandem: the stage 1 pblock created by the XDMA IP (SLICE_X199-X232 Y0-Y239,
+# GT quads 224-227, CONFIG_SITE, HBM edge) excludes other placement, and pblock_bd_i overlapped it.
+#create_pblock pblock_bd_i
+#add_cells_to_pblock [get_pblocks pblock_bd_i] [get_cells -quiet [list bd_i]]
+#resize_pblock [get_pblocks pblock_bd_i] -add {SLICE_X219Y0:SLICE_X232Y239 SLICE_X0Y0:SLICE_X218Y50}
+#resize_pblock [get_pblocks pblock_bd_i] -add {DSP48E2_X31Y0:DSP48E2_X31Y89 DSP48E2_X0Y0:DSP48E2_X30Y13}
+#resize_pblock [get_pblocks pblock_bd_i] -add {LAGUNA_X30Y0:LAGUNA_X31Y119}
+#resize_pblock [get_pblocks pblock_bd_i] -add {RAMB18_X13Y0:RAMB18_X13Y95 RAMB18_X0Y0:RAMB18_X12Y19}
+#resize_pblock [get_pblocks pblock_bd_i] -add {RAMB36_X13Y0:RAMB36_X13Y47 RAMB36_X0Y0:RAMB36_X12Y9}
+#resize_pblock [get_pblocks pblock_bd_i] -add {URAM288_X0Y0:URAM288_X4Y11}
 #resize_pblock [get_pblocks pblock_bd_i] -add {SLICE_X0Y0:SLICE_X232Y50}
 #resize_pblock [get_pblocks pblock_bd_i] -add {DSP48E2_X0Y0:DSP48E2_X31Y13}
 #resize_pblock [get_pblocks pblock_bd_i] -add {RAMB18_X0Y0:RAMB18_X13Y19}

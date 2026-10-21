@@ -17,9 +17,15 @@ if {[current_project -quiet] eq ""} {
 set ImplDir [get_property DIRECTORY [get_runs impl_1]]
 set Top [get_property TOP [current_fileset]]
 set Bit $ImplDir/$Top.bit
+#Tandem PCIe builds write <top>_tandem1.bit (stage 1, goes to the flash) and <top>_tandem2.bit (stage 2, over PCIe).
+set Stage1 $ImplDir/${Top}_tandem1.bit
+if {[file exists $Stage1] && (![file exists $Bit] || [file mtime $Stage1] > [file mtime $Bit])} {
+    set Bit $Stage1
+}
 if {![file exists $Bit]} {
     return -code error "No bitstream $Bit. Run implementation and write_bitstream first."
 }
+puts "Bitstream: $Bit"
 
 set Mcs [list $ImplDir/${Top}_primary.mcs $ImplDir/${Top}_secondary.mcs]
 set Prm [list $ImplDir/${Top}_primary.prm $ImplDir/${Top}_secondary.prm]
