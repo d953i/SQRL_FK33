@@ -16,7 +16,7 @@ in the design to make it pass the Tandem rules, and how to build, flash and chec
 - [What the project script does](#what-the-project-script-does)
 - [Build, flash and check](#build-flash-and-check)
 - [Build results](#build-results)
-- [Known issue: design DNA in Tandem builds](#known-issue-design-dna-in-tandem-builds)
+- [Device DNA on multi-SLR devices](#device-dna-on-multi-slr-devices)
 - [Tandem PCIe (stage 2 over PCIe)](#tandem-pcie-stage-2-over-pcie)
 - [Notes for Vivado 2019.2](#notes-for-vivado-20192)
 - [Files](#files)
@@ -118,6 +118,7 @@ flowchart LR
             CLK["clk_wiz_0<br/>100 MHz / 200 MHz"]
             SCH["pcie2hbm<br/>SmartConnect"]
             HBM["hbm<br/>2 stacks, 8 GB"]
+            BRAM["dma_bram_ctrl + dma_bram<br/>256 KB, DMA loop test"]
             SCL["pcie2axil<br/>SmartConnect"]
             IIC["axi_iic_0<br/>0x9000"]
             SYSMON["system_management_wiz_0<br/>0x3000"]
@@ -137,6 +138,7 @@ flowchart LR
     JH --> SCH
     SCH -->|"SAXI_00: 0x0_0000_0000"| HBM
     SCH -->|"SAXI_16: 0x1_0000_0000"| HBM
+    SCH -->|"0x2_0000_0000"| BRAM
     XDMA -->|"M_AXI_LITE (BAR)"| SCL
     JL --> SCL
     SCL --> IIC
@@ -157,7 +159,7 @@ flowchart LR
     classDef stage2 fill:#c8e6c9,stroke:#1b5e20,color:#000
     classDef ext fill:#e3f2fd,stroke:#0d47a1,color:#000
     class REFBUF,XDMA,PERST,GATE,IOB,BSCAN stage1
-    class CLK,SCH,HBM,SCL,IIC,SYSMON,DNA,JH,JL,DBG stage2
+    class CLK,SCH,HBM,BRAM,SCL,IIC,SYSMON,DNA,JH,JL,DBG stage2
     class RP,FLASH,PMIC,LEDS ext
 ```
 
@@ -170,8 +172,13 @@ AXI-Lite address map (PCIe BAR of `M_AXI_LITE`, 128 KB, and `jtag_axil`):
 | 0x7000 | dna_gpio_1 | DNA[95:64] (0x7000), ready (0x7008 bit 0) |
 | 0x9000 | axi_iic_0 | I2C to the PMIC, GPO drives the LEDs (through `led_inv`) |
 
-HBM (DMA `M_AXI` and `jtag_hbm`): stack 0 at 0x0_0000_0000 to 0x0_FFFF_FFFF through SAXI_00, stack 1 at
-0x1_0000_0000 to 0x1_FFFF_FFFF through SAXI_16.
+DMA (`M_AXI`, 512 bits) and `jtag_hbm` address map:
+
+| Address | Block | Contents |
+| --- | --- | --- |
+| 0x0_0000_0000 to 0x0_FFFF_FFFF | hbm SAXI_00 | HBM stack 0, 4 GB |
+| 0x1_0000_0000 to 0x1_FFFF_FFFF | hbm SAXI_16 | HBM stack 1, 4 GB |
+| 0x2_0000_0000 to 0x2_0003_FFFF | dma_bram_ctrl | 256 KB on-chip BRAM for the XDMA loop test (independent of the HBM) |
 
 ## What goes into stage 1
 
@@ -188,6 +195,7 @@ buffers.
 | `pcie_clkreq_obuft` | BE25 | Stage1_Config_IO | Bank 65 (HDTC-10). |
 | `stage1_io_off`, `stage1_iic_scl_t`, `stage1_iic_sda_t` | | Stage1_Main | Stage 1 outputs driven by stage 2 logic must stay tri-stated until stage 2 is up (HDTC-11), see below. |
 | Debug hub `BSCANE2` | | Stage1_Main | Configuration-site primitives must be in stage 1 (HDTC-12). |
+| `dna_reader` `DNA_PORTE2` | `CONFIG_SITE_X0Y0` | Stage1_Main | SLR0's configuration site, whose DNA is the eFUSE DNA, is inside stage 1 (see [Device DNA](#device-dna-on-multi-slr-devices)). |
 
 ## Bank 65 I/O gating
 
@@ -290,6 +298,9 @@ Tandem IP constraints set `CONFIG_MODE SPIx4`, but they are processed early, so 
 
 ## Build, flash and check
 
+The complete procedure, including the driver for Tandem PCIe, is in [Build_and_Test.md](Build_and_Test.md). In short,
+for Tandem PROM:
+
 1. Set the options at the top of `projects/sqrl_fk_project.tcl` (`Board`, `PCIeLanes`, `PCIeGen`,
    `PCIeTandem PROM`) and source it in Vivado 2019.2, then run synthesis, implementation and bitstream generation.
    The flash images are written next to the bitstream in `SQRL_FK35.runs/impl_1`.
@@ -325,23 +336,40 @@ Example build: FK35, Gen4 x8, Vivado 2019.2.1.
 
 On the test PC the link comes up at Gen4 x4 (the chipset slot has four lanes).
 
-## Known issue: design DNA in Tandem builds
+## Device DNA on multi-SLR devices
 
 Each SLR die of a multi-SLR device has its own DNA. The DNA that Vivado shows as `REGISTER.EFUSE.FUSE_DNA` is the
 master SLR's, which is SLR0 on the VU35P. SLR0's configuration site (`CONFIG_SITE_X0Y0`) is inside the stage 1 pblock,
-where it also holds the debug hub's BSCANE2. The stage 2 `DNA_PORTE2` of `dna_reader` therefore went into SLR1's
-configuration site (`CONFIG_SITE_X0Y1`), and the Tandem build reports the DNA of the SLR1 die: same upper bits (lot and
-wafer), different lower bits. `sqrl_fk_read_dna.bat` shows it as "differs from eFUSE".
+where it also holds the debug hub's BSCANE2. In the first Tandem PROM build the stage 2 `DNA_PORTE2` of `dna_reader`
+therefore went into SLR1's configuration site (`CONFIG_SITE_X0Y1`), and the design reported the DNA of the SLR1 die:
+same upper bits (lot and wafer), different lower bits. `sqrl_fk_read_dna.bat` showed it as "differs from eFUSE".
 
-Fix (not built yet): place `DNA_PORTE2` at `CONFIG_SITE_X0Y0` and assign it to stage 1. The non-Tandem builds leave
-the choice to the placer too, so the location constraint belongs in every build.
+Since 2026-10-22, `sqrl_fk.xdc` places `DNA_PORTE2` at `CONFIG_SITE_X0Y0` in every build, and Tandem builds assign it
+to stage 1. On the Tandem PCIe build the design DNA read over PCIe now equals the eFUSE DNA (2026-10-23, see the
+[verification status](Build_and_Test.md#11-verification-status)).
 
 ## Tandem PCIe (stage 2 over PCIe)
 
-`set PCIeTandem PCIe` builds the other Tandem mode: only stage 1 is in the flash, and a host driver loads stage 2 through
-the PCIe block's MCAP. The script then sets `HD.TANDEM_BITSTREAMS Separate`, writes `bd_wrapper_tandem1.bit` and
+`set PCIeTandem PCIe` builds the other Tandem mode: only stage 1 is in the flash, and the host loads stage 2 through the
+PCIe block's MCAP. The script then sets `HD.TANDEM_BITSTREAMS Separate`, writes `bd_wrapper_tandem1.bit` and
 `bd_wrapper_tandem2.bit`, and puts only stage 1 into the flash image (`sqrl_fk_program_flash.tcl` picks the stage 1
-file too). This mode is not tested on the board: it needs an MCAP driver on the host to send stage 2.
+file too).
+
+On Windows, `driver/windows` has the driver and the loader: `sqrl_fk_mcap load bd_wrapper_tandem2.bit` after every
+power-on (see [Build_and_Test.md](Build_and_Test.md), steps 7 to 9). Tested on the FK35 on 2026-10-23: stage 2 (18.1 MB)
+loads in 11.4 s, the design DNA reads correctly over PCIe, and the XDMA loop test passes on the BRAM and both HBM
+stacks at about 7.1 GB/s host to card and 6.9 GB/s card to host (Gen4 x4). A stage 2 must come from the same build as the
+stage 1 in the flash and must be loaded only once after it; loading a different stage 2 later needs the Field Updates
+flow, which this project does not use. Stage 2 never comes from the flash in this mode, and Tandem PROM has no MCAP
+path, so one image cannot do both (AMD PG213).
+
+Example build (FK35, Gen4 x8, with the DNA fix): timing met (WNS +0.008 ns, WHS +0.010 ns), stage 1 28,202,720 bits
+(`bd_wrapper_tandem1.bit`, 3.5 MB), stage 2 146,486,784 bits (`bd_wrapper_tandem2.bit`, 18.3 MB). It has one extra
+warning, HDTC-14: three slices beside the stage 1 area (SLICE_X220Y72, Y73, Y102) hold only stage 2 registers
+(`dna_reader`'s DNA port controls and XDMA DMA read watchdog bits) but count as stage 1 tiles, so stage 2 does not reset
+them. The DNA port controls keep their initial values until their stage 2 clock starts; the XDMA bits could only matter
+for DMA. The build with the DMA loop BRAM has 55 such tiles, all in slice column X220 with XDMA AXI memory-mapped bridge
+registers; its DMA loop test passes.
 
 ## Notes for Vivado 2019.2
 
@@ -363,6 +391,8 @@ file too). This mode is not tested on the board: it needs an MCAP driver on the 
 | `SQRL_<Board>/write_flash_image.tcl` | Generated: write_cfgmem after write_bitstream. |
 | `scripts/sqrl_fk_program_flash*.bat/.tcl` | Program the flashes and boot; the `_pc` version handles the board in a PC. |
 | `scripts/sqrl_fk_read_dna.bat/.tcl` | Read the device DNA over JTAG and from the design. |
+| `driver/windows/` | Windows driver `sqrlfk.sys` and `sqrl_fk_mcap.exe`: stage 2 over MCAP, BAR registers, DNA over PCIe. |
+| `docs/Build_and_Test.md` | Step-by-step build, flash, driver and test procedure, with the verification status. |
 
 ## References
 

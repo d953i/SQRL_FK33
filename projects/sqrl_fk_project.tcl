@@ -237,9 +237,19 @@ if {$EnablePCIe == 1} {
     make_bd_pins_external  [get_bd_pins xlconstant_0/dout]
     set_property name pcie_clkreq [get_bd_ports dout_0]
     
-    set_property -dict [list CONFIG.NUM_SI {2} CONFIG.NUM_MI {2}] [get_bd_cells pcie2hbm]
+    set_property -dict [list CONFIG.NUM_SI {2} CONFIG.NUM_MI {3}] [get_bd_cells pcie2hbm]
     connect_bd_intf_net [get_bd_intf_pins xdma/M_AXI] [get_bd_intf_pins pcie2hbm/S01_AXI]
-    
+
+    #DMA loop test target: 256 KB of on-chip BRAM on the DMA port, at 0x2_0000_0000 above the HBM, so the DMA loop
+    #test (driver/windows, sqrl_fk_mcap loop) also works without the HBM. Same data width as the XDMA AXI port.
+    create_bd_cell -type ip -vlnv xilinx.com:ip:axi_bram_ctrl:4.1 dma_bram_ctrl
+    set_property -dict [list CONFIG.DATA_WIDTH [get_property CONFIG.DATA_WIDTH [get_bd_intf_pins xdma/M_AXI]] CONFIG.SINGLE_PORT_BRAM {1} CONFIG.ECC_TYPE {0}] [get_bd_cells dma_bram_ctrl]
+    create_bd_cell -type ip -vlnv xilinx.com:ip:blk_mem_gen:8.4 dma_bram
+    connect_bd_intf_net [get_bd_intf_pins dma_bram_ctrl/BRAM_PORTA] [get_bd_intf_pins dma_bram/BRAM_PORTA]
+    connect_bd_intf_net [get_bd_intf_pins pcie2hbm/M02_AXI] [get_bd_intf_pins dma_bram_ctrl/S_AXI]
+    connect_bd_net [get_bd_pins xdma/axi_aclk] [get_bd_pins dma_bram_ctrl/s_axi_aclk]
+    connect_bd_net [get_bd_pins xdma/axi_aresetn] [get_bd_pins dma_bram_ctrl/s_axi_aresetn]
+
     set_property -dict [list CONFIG.NUM_SI {2} CONFIG.NUM_MI {2}] [get_bd_cells pcie2axil]
 
     connect_bd_net [get_bd_pins xdma/axi_aclk] [get_bd_pins pcie2hbm/aclk]
@@ -469,7 +479,12 @@ if {$HBMGlobalSwitch == 1} {
         exclude_bd_addr_seg [get_bd_addr_segs hbm/SAXI_16/HBM_MEM17] -target_address_space [get_bd_addr_spaces xdma/M_AXI]
     }
 }
-   
+
+if {$EnablePCIe == 1} {
+    #DMA loop test BRAM, above the 8 GB of HBM (DMA and jtag_hbm).
+    assign_bd_address -offset 0x200000000 -range 256K [get_bd_addr_segs {dma_bram_ctrl/S_AXI/Mem0}]
+}
+
 #set_property PR_FLOW 1 [current_project]
 add_files -fileset constrs_1 -norecurse $scriptPath/sqrl_fk.xdc
 set_property target_constrs_file $scriptPath/sqrl_fk.xdc [current_fileset -constrset]
@@ -486,6 +501,8 @@ if {$PCIeTandem ne "None"} {
     puts $fh "#IOBUF is a macro: it goes to the pblock as a whole (its internal cells cannot be added one by one)."
     puts $fh {set_property HD.TANDEM_IP_PBLOCK Stage1_Config_IO [get_cells -hierarchical -filter {NAME == iic_scl_iobuf || NAME == iic_sda_iobuf || NAME =~ led_obuft* || NAME == pcie_clkreq_obuft}]}
     puts $fh {set_property HD.TANDEM_IP_PBLOCK Stage1_Main [get_cells {stage1_io_off stage1_iic_scl_t stage1_iic_sda_t}]}
+    puts $fh "#dna_reader's DNA_PORTE2 is placed in SLR0's configuration site (sqrl_fk.xdc), which is in the stage 1 pblock."
+    puts $fh {set_property HD.TANDEM_IP_PBLOCK Stage1_Main [get_cells -hierarchical -filter {REF_NAME == DNA_PORTE2}]}
     puts $fh "#Align the IP's stage 1 pblock to Programmable Unit boundaries (DRC HDTC-18)."
     puts $fh {set_property SNAPPING_MODE ON [get_pblocks -filter {NAME =~ *Stage1_main}]}
     puts $fh "#HBM stack 1 is one hard macro whose AXI 15/APB cells sit on BLI_HBM_*_INTF_X31Y0, inside the IP's stage 1"

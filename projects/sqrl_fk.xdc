@@ -133,6 +133,14 @@ set_property BITSTREAM.CONFIG.SPI_32BIT_ADDR YES [current_design]
 
 
 ###############################################################################
+# Device DNA
+###############################################################################
+# Each SLR has its own configuration site and DNA. Vivado's REGISTER.EFUSE.FUSE_DNA is the master SLR's DNA
+# (SLR0 on VU35P; VU33P has one SLR), so keep dna_reader's DNA_PORTE2 in SLR0's configuration site.
+set_property LOC CONFIG_SITE_X0Y0 [get_cells -hierarchical -filter {REF_NAME == DNA_PORTE2}]
+
+
+###############################################################################
 # PBlocks
 ###############################################################################
 # No pblock for bd_i with PCIe Tandem: the stage 1 pblock created by the XDMA IP (SLICE_X199-X232 Y0-Y239,

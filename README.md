@@ -4,6 +4,8 @@ SQRL FK33/FK35 board files, contraints, example designs and scripts.<br>
 
 Scripts target Vivado 2019.2. Virtex UltraScale+ devices are not supported by the free Vivado Standard edition; an Enterprise (or evaluation) license is required.<br>
 
+Step-by-step guide to rebuild the project, program the board and build and test the Windows driver: [docs/Build_and_Test.md](docs/Build_and_Test.md)<br>
+
 Add board_files folder of this repo to Vivado board repository paths, for example in Vivado TCL console (or in Vivado_init.tcl):<br>
 ```set_param board.repoPaths [list ../path_to_this_repo/SQRL_FK33/board_files]```<br>
 Board files: sqrl_fk33 (Forest Kitten 33, XCVU33P) and sqrl_fk35 (Forest Kitten 35, XCVU35P). Both boards use the same PCB and pinout, only the FPGA differs.<br>
@@ -22,6 +24,8 @@ scripts/sqrl_fk_program_flash_pc.bat [path\to\SQRL_FK35.xpr] does all of this: d
 
 The example design includes the FPGA device DNA (96-bit unique ID), readable on the AXI-Lite bus (PCIe BAR or JTAG-to-AXI): 0x1000 DNA[31:0], 0x1008 DNA[63:32], 0x7000 DNA[95:64], 0x7008 bit 0 = ready.<br>
 scripts/sqrl_fk_read_dna.bat (or sqrl_fk_read_dna.tcl) prints the DNA over JTAG, and compares it with the design's copy when the design is loaded.<br>
+
+The XDMA DMA port reaches both HBM stacks (0x0_0000_0000 and 0x1_0000_0000) and a 256 KB on-chip BRAM at 0x2_0000_0000. The Windows driver in driver/windows loads Tandem PCIe stage 2 bitstreams and runs the XDMA loop test (sqrl_fk_mcap loop: write with H2C, read back with C2H, compare) on all three.<br>
 
 For example, in Vivado TCL console:
 <br>

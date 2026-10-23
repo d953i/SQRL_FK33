@@ -1,0 +1,64 @@
+;
+; sqrlfk.inf: SQRL Forest Kitten FK33/FK35 example design (PCI 1E24:1533).
+; sqrlfk.sys (KMDF) gives sqrl_fk_mcap.exe MCAP access (PCIe Tandem stage 2 loading), BAR register access and
+; XDMA transfers. DriverVer and the KMDF version are filled in by stampinf when the driver is built.
+;
+
+[Version]
+Signature   = "$WINDOWS NT$"
+Class       = System
+ClassGuid   = {4d36e97d-e325-11ce-bfc1-08002be10318}
+Provider    = %Vendor%
+CatalogFile = sqrlfk.cat
+DriverVer   =
+PnpLockdown = 1
+
+[DestinationDirs]
+DefaultDestDir = 13
+
+[SourceDisksNames]
+1 = %DiskName%
+
+[SourceDisksFiles]
+sqrlfk.sys = 1
+
+[Manufacturer]
+%Vendor% = SqrlFk, NT$ARCH$.10.0...16299
+
+[SqrlFk.NT$ARCH$.10.0...16299]
+%DeviceDesc% = SqrlFk_Install, PCI\VEN_1E24&DEV_1533
+
+[SqrlFk_Install.NT]
+CopyFiles = SqrlFk_Files
+
+[SqrlFk_Files]
+sqrlfk.sys
+
+[SqrlFk_Install.NT.HW]
+AddReg = SqrlFk_Security
+
+[SqrlFk_Security]
+; Only SYSTEM and Administrators can open \\.\SqrlFk<n> (the driver sets the same on its device object).
+HKR,,Security,,"D:P(A;;GA;;;SY)(A;;GA;;;BA)"
+
+[SqrlFk_Install.NT.Services]
+AddService = sqrlfk, 0x00000002, SqrlFk_Service
+
+[SqrlFk_Service]
+DisplayName   = %ServiceName%
+ServiceType   = 1               ; SERVICE_KERNEL_DRIVER
+StartType     = 3               ; SERVICE_DEMAND_START
+ErrorControl  = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary = %13%\sqrlfk.sys
+
+[SqrlFk_Install.NT.Wdf]
+KmdfService = sqrlfk, SqrlFk_Wdf
+
+[SqrlFk_Wdf]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+Vendor      = "SQRL"
+DeviceDesc  = "SQRL Forest Kitten FK33/FK35"
+DiskName    = "SQRL Forest Kitten driver"
+ServiceName = "SQRL Forest Kitten FK33/FK35 driver"
