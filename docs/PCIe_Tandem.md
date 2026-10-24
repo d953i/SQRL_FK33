@@ -391,6 +391,7 @@ registers; its DMA loop test passes.
 | `SQRL_<Board>/write_flash_image.tcl` | Generated: write_cfgmem after write_bitstream. |
 | `scripts/sqrl_fk_program_flash*.bat/.tcl` | Program the flashes and boot; the `_pc` version handles the board in a PC. |
 | `scripts/sqrl_fk_read_dna.bat/.tcl` | Read the device DNA over JTAG and from the design. |
+| `scripts/sqrl_fk_pcie_test.bat` | Windows: board state, stage 2 load, DNA over PCIe and XDMA loop test with the driver, logged. |
 | `driver/windows/` | Windows driver `sqrlfk.sys` and `sqrl_fk_mcap.exe`: stage 2 over MCAP, BAR registers, DNA over PCIe. |
 | `docs/Build_and_Test.md` | Step-by-step build, flash, driver and test procedure, with the verification status. |
 

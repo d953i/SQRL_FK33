@@ -255,6 +255,11 @@ HBM stack 0  0x000000000  4096 KB x 10: H2C  7091 MB/s, C2H  6866 MB/s, data OK
 HBM stack 1  0x100000000  4096 KB x 10: H2C  7093 MB/s, C2H  6869 MB/s, data OK
 ```
 
+**All tests in one go:** `scripts\sqrl_fk_pcie_test.bat [stage2.bit]` runs the steps below in order: board and boot
+state, `info`, `load`, `dna`, `loop`. Edit the paths at its top for your build (stage 2 bitstream, driver package, loop
+iterations, log file). It asks for administrator rights, stops after a failed `load`, and writes everything to
+`%TEMP%\sqrl_fk_pcie_test.log`.
+
 **Tandem PCIe build** (flash programmed with that build, step 5):
 
 1. `sqrl_fk_mcap info`: an MCAP capability is found (configuration offset 0x350 on the FK35), `EOS=0` and
@@ -270,7 +275,7 @@ HBM stack 1  0x100000000  4096 KB x 10: H2C  7093 MB/s, C2H  6869 MB/s, data OK
    engine shows `EOS=0` again; that is normal.
 3. `sqrl_fk_mcap dna`: the DNA equals the eFUSE DNA.
 4. `sqrl_fk_mcap loop`: all three targets `data OK`.
-5. After every power-on, repeat step 2: stage 2 is not stored on the board.
+5. After every power-on, repeat step 2 (or run `scripts\sqrl_fk_pcie_test.bat`): stage 2 is not stored on the board.
 
 | Message | Meaning |
 | --- | --- |

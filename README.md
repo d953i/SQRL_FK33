@@ -25,7 +25,7 @@ scripts/sqrl_fk_program_flash_pc.bat [path\to\SQRL_FK35.xpr] does all of this: d
 The example design includes the FPGA device DNA (96-bit unique ID), readable on the AXI-Lite bus (PCIe BAR or JTAG-to-AXI): 0x1000 DNA[31:0], 0x1008 DNA[63:32], 0x7000 DNA[95:64], 0x7008 bit 0 = ready.<br>
 scripts/sqrl_fk_read_dna.bat (or sqrl_fk_read_dna.tcl) prints the DNA over JTAG, and compares it with the design's copy when the design is loaded.<br>
 
-The XDMA DMA port reaches both HBM stacks (0x0_0000_0000 and 0x1_0000_0000) and a 256 KB on-chip BRAM at 0x2_0000_0000. The Windows driver in driver/windows loads Tandem PCIe stage 2 bitstreams and runs the XDMA loop test (sqrl_fk_mcap loop: write with H2C, read back with C2H, compare) on all three.<br>
+The XDMA DMA port reaches both HBM stacks (0x0_0000_0000 and 0x1_0000_0000) and a 256 KB on-chip BRAM at 0x2_0000_0000. The Windows driver in driver/windows loads Tandem PCIe stage 2 bitstreams and runs the XDMA loop test (sqrl_fk_mcap loop: write with H2C, read back with C2H, compare) on all three. scripts/sqrl_fk_pcie_test.bat runs the whole test (stage 2 load, DNA, loop) after a power-on, with the paths set at its top.<br>
 
 For example, in Vivado TCL console:
 <br>

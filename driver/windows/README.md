@@ -82,7 +82,8 @@ sqrl_fk_mcap read 0x7008
 - `read <offset>` / `write <offset> <value>`: BAR0 registers; `-b <n>` selects another BAR, `-d <n>` another board.
 
 A Tandem PCIe board stays at stage 1 (enumerated, BARs not answering) until `load` runs, so run it after every
-power-on, for example from a Task Scheduler task.
+power-on, for example from a Task Scheduler task. `scripts\sqrl_fk_pcie_test.bat` runs `info`, `load`, `dna` and
+`loop` in one go with the paths set at its top, and logs the output to `%TEMP%\sqrl_fk_pcie_test.log`.
 
 ## Notes
 
